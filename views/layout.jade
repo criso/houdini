@@ -1,0 +1,20 @@
+!!!
+html
+  head
+    title= title
+    script(src='https://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js')
+    script(src='http://maps.googleapis.com/maps/api/js?sensor=false')
+    script(src='/socket.io/socket.io.js')
+    // script(src='http://static.ak.fbcdn.net/connect/en_US/core.js')
+    script(src='/javascripts/main.js')
+    script(src='/javascripts/client.js')
+    link(rel='stylesheet', href="http://code.google.com/apis/maps/documentation/javascript/examples/default.css")
+  body
+    div#fb-root
+
+    div#facebook_login(style='position:relative;float:right;width:200px;padding-top:10px;')
+      div#fb-login.fb_button(style='float:left; background-position: left -188px')                
+        a.fb_button_medium(href='/auth/facebook')
+          span#fb_login_text.fb_button_text Connect with Facebook
+
+    !=body
