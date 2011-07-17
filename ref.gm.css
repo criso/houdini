@@ -1,0 +1,872 @@
+/* ----- GLOBAL & BODY ----- */
+
+*{margin:0; padding:0}
+html{height: 100%;}
+body{height: 100%;color:#333; background:#e1e1e1 url("/img/bg/page.gif") repeat-x top left; text-align:center; font:normal 12px arial,sans-serif;min-width: 1000px;}
+.clear{clear:both; height:1px; text-overflow:none}
+.clear{display:inline !ie}
+.clearButton{clear:both; height:10px; text-overflow:none}
+.clearMyHead{_display: none; clear:both; _clear:none; height:1px; text-overflow:none; background:#fff url("/img/bg/clearHead.png") no-repeat top right; _background:none; width:100%; _height:1px;}
+.clearActivity{clear:both; height:1px; text-overflow:none; padding-top:40px !ie}
+.right{float:right}
+.left{float:left}
+.camelCase{text-transform:capitalize}
+
+
+/* WORLDVIEW */
+
+
+/* Counter Modal */
+
+#mapholder {
+  position: relative;
+  -webkit-border-radius: 12px;
+  -moz-border-radius: 12px;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+#map>div {
+  background-color: #98b3cc;
+}
+
+#wv_fullScreenBody {
+  overflow: hidden;
+  display: block;
+}
+
+#wv_fullScreenBody #map {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    top: 62px;
+    left: 0;
+}
+
+#wv_topBar {
+  background-color: #eaeaec;
+  background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#fafafa), to(#eaeaec));
+  background-image: -moz-linear-gradient(0% 100% 90deg,#eaeaec, #fafafa);
+  width: 100%;
+  height: 62px;
+  text-align: left;
+  -webkit-box-shadow:
+    inset 0 -1px 0 0 rgba(0,0,0,0.08),
+    inset 0 1px 0 0 #fff,
+    0 2px 5px 0 rgba(0,0,0,0.25);
+  -moz-box-shadow:
+    inset 0 -1px 0 0 rgba(0,0,0,0.08),
+    inset 0 1px 0 0 #fff,
+    0 2px 5px 0 rgba(0,0,0,0.25);
+  z-index: 99999;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+
+/*  --------------------------------------------------
+    CAMPAIGN DETAILS
+    -------------------------------------------------- */
+
+#wv_campaignDetails {
+  position: absolute;
+  margin-left: 20px;
+  margin-top: 10px;
+  left: 0;
+  top: 0;
+}
+
+  #wv_campaignDetails h2 {
+    margin: 0;
+    font-size: 18px;
+    color: #444;
+    text-shadow: 0 1px 0 #fff;
+    -webkit-font-smoothing: antialiased;
+  }
+  
+
+  /*    --------------------------------------------------
+    SEND STATUS
+    -------------------------------------------------- */
+
+#wv_status {
+  display: block;
+  vertical-align: top;
+  width: 320px;
+  margin: 0 auto;
+  margin-top: 5px;
+  text-align: center;
+  height: 62px;
+}
+
+  #wv_status h3 {
+    margin: 0;
+    text-transform: uppercase;
+    color: #aeaeae;
+    font-size: 11px;
+    text-shadow: 0 1px 0 #fff;
+    -webkit-font-smoothing: antialiased;
+    margin-bottom: 5px;
+  }
+  
+.wv_counter, #wv_backBar {
+  background-color: #e6e6e7;
+  background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#e6e6e7), to(#e8e8e9));
+  background-image: -moz-linear-gradient(0% 100% 90deg,#e8e8e9, #e6e6e7);
+  display: inline-block;
+  -webkit-border-radius: 4px;
+  -moz-border-radius: 4px;
+  border-radius: 4px;
+  -webkit-box-shadow:
+    inset 0 1px 5px 0 rgba(0,0,0,0.2),
+    inset 0 0 0 1px rgba(0,0,0,0.06),
+    0 1px 0 0 #fff;
+  -moz-box-shadow:
+    inset 0 1px 5px 0 rgba(0,0,0,0.2),
+    inset 0 0 0 1px rgba(0,0,0,0.06),
+    0 1px 0 0 #fff;
+  height: 32px;
+  position: relative;
+}
+
+.wv_counter, #wv_backBar {
+  display: inline !IE;
+  background-color: #ddd !IE;
+  border: 1px solid #c9c9c9 !IE;
+}
+
+  .wv_counter span#wv_time, #wv_queued {
+    font-size: 27px;
+    font-weight: bold;
+    text-shadow: 0 1px 0 #fff;
+    margin-top: 15px;
+    padding: 0 10px;
+    line-height: 34px;
+    color: #666;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  #wv_queuing {
+    color: #e5af1f;
+    text-transform: uppercase;
+    font-size: 21px;
+    letter-spacing: 1px;
+    padding: 0 10px;
+  }
+
+.wv_counter.wv_days {
+    margin-right: 5px;
+    }
+    
+    .wv_counter.wv_days span#wv_time {
+    padding: 0 5px;
+}
+    
+    .wv_timeKey {
+    color: #aaa;
+    font-size: 10px;
+    margin-left: 2px;
+}
+  
+  .wv_counter span.wv_horizontal {
+    height: 32px;
+    width: auto;
+    display: block;
+    position: relative;
+    background: url('http://i2.campaignmonitor.com/worldview/demo/img/worldview/counterDivider.png') repeat-x;
+    margin-top: -33px;
+  }
+
+#wv_countdown, #wv_queued, #wv_sending { display: none; }
+
+  #wv_backBar {
+    background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#bcbcbc), to(#ddddde));
+    background-image: -moz-linear-gradient(0% 100% 90deg,#ddddde, #bcbcbc);
+    border-color: #bababb;
+    position: relative;
+    z-index: 1;
+    padding: 3px;
+    width: 240px;
+    height: 26px;
+  }
+  
+  @-webkit-keyframes 'move' {
+    0% {
+      background-position: 0 0;
+    }
+    100% {
+      background-position: -44px 0;
+    }
+  }
+  
+  @-moz-keyframes 'move' {
+    0% {
+      background-position: 0 0;
+    }
+    100% {
+      background-position: -44px 0;
+    }
+  }
+  
+  #wv_progressBar {
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    height: 26px;
+    -webkit-border-radius: 3px;
+    -moz-border-radius: 3px;
+    border-radius: 3px;
+    background-color: #3fb113;
+    background-image: url('http://i2.campaignmonitor.com/worldview/demo/img/worldview/barBackground.png'), -webkit-gradient(linear, 0% 0%, 0% 100%, color-stop(0, rgb(68,184,25)), color-stop(0.5, rgb(55,169,9)), color-stop(0.5, rgb(44,157,0)), color-stop(1, rgb(64,177,19)));
+    background-image: url('http://i2.campaignmonitor.com/worldview/demo/img/worldview/barBackground.png'), -moz-linear-gradient(0% 100% 90deg,rgb(64,177,19), rgb(44,157,0) 50%, rgb(55,169,9) 50%, rgb(68,184,25) 100%);
+    background-repeat: repeat-x, repeat;
+    background-position: 0 0, 0 0;
+    -webkit-box-shadow: 
+      inset 0 1px 2px 0 rgba(0,0,0,0.25),
+      inset 0 0 0 1px rgba(0,0,0,0.03),
+      0 1px 0 0 rgba(255,255,255,0.25);
+    -moz-box-shadow: 
+      inset 0 1px 2px 0 rgba(0,0,0,0.25),
+      inset 0 0 0 1px rgba(0,0,0,0.03),
+      0 1px 0 0 rgba(255,255,255,0.25);
+    width: 0;
+    z-index: 2;
+    
+    -webkit-animation-name: move;
+    -webkit-animation-timing-function: linear;
+    -webkit-animation-duration: 1.5s;
+    -webkit-animation-iteration-count: infinite;
+    
+    -moz-animation-name: move;
+    -moz-animation-timing-function: linear;
+    -moz-animation-duration: 1.5s;
+    -moz-animation-iteration-count: infinite;
+  }
+  
+  #wv_progressData {
+    line-height: 34px;
+    color: #fff;
+    font-weight: bold;
+    font-size: 16px;
+    text-align: center;
+    text-shadow: 0 -1px 0 rgba(0,0,0,0.2);
+    z-index: 200;
+    -webkit-font-smoothing: antialiased;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 244px;
+  }
+  
+  #wv_sentAlert {
+    display: none;
+    line-height: 34px;
+    color: #fff;
+    font-weight: bold;
+    font-size: 16px;
+    text-align: center;
+    text-shadow: 0 -1px 0 rgba(0,0,0,0.2);
+    z-index: 200;
+    position: absolute;
+    width: 244px;
+    top: 0;
+    left: 0;
+    text-transform: uppercase;
+    -webkit-font-smoothing: antialiased;
+  }
+  
+  #wv_sentAlert img {
+    top: 3px;
+    margin-right: 1px;
+    position: relative;
+  }
+
+
+/*  --------------------------------------------------
+    WORLDVIEW COUNTER
+    -------------------------------------------------- */
+
+ul#wv_fsCounter, ul#counts {
+  position: absolute;
+  right: 0;
+  top: 8px;
+  margin-right: 20px;
+  background-color: #f1f1f1;
+  background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#f1f1f1), to(#eaeaec));
+  background-image: -moz-linear-gradient(0% 100% 90deg,#eaeaec, #f1f1f1);
+  -webkit-border-radius: 6px;
+  -moz-border-radius: 6px;
+  border-radius: 6px;
+  -webkit-box-shadow:
+    inset 0 1px 5px 0 rgba(0,0,0,0.2),
+    inset 0 0 0 1px rgba(0,0,0,0.06),
+    0 1px 0 0 #fff;
+  -moz-box-shadow:
+    inset 0 1px 5px 0 rgba(0,0,0,0.2),
+    inset 0 0 0 1px rgba(0,0,0,0.06),
+    0 1px 0 0 #fff;
+  height: 46px;
+  list-style-type: none;
+  -webkit-font-smoothing: antialiased;
+}
+
+ul#wv_fsCounter, ul#counts {
+  border: 1px solid #ddd !IE;
+  top: 6px !IE;
+}
+
+ul#counts {
+  top: 10px !important;
+  right: 10px !important;
+  border: 2px solid rgba(0,0,0,0.45) !important;
+  background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#fafafa), to(#e8e8eb));
+  background-image: -moz-linear-gradient(0% 100% 90deg,#e8e8eb, #fafafa);
+  -webkit-box-shadow:
+    inset 0 0 0 1px rgba(255,255,255,0.06),
+    0 1px 0 0 rgba(255,255,255,0.3);
+  -moz-box-shadow:
+  inset 0 0 0 1px rgba(255,255,255,0.06),
+  0 1px 0 0 rgba(255,255,255,0.3);
+  height: 40px;
+  display: none;
+  margin-right: 0 !important;
+}
+
+  ul#wv_fsCounter li, ul#counts li {
+    padding: 0 12px;
+    margin: 0;
+    display: inline-block;
+    line-height: 1;
+    height: 46px;
+  }
+  
+  ul#counts li {
+    height: 40px;
+  }
+  
+  ul#wv_fsCounter li, ul#counts li {
+    display: inline !IE;
+  }
+  
+  ul#wv_fsCounter li#opens, ul#counts li#opens {
+    border-right: 1px solid rgba(255,255,255,0.5);
+    -webkit-box-shadow: inset -1px 0 0 0 #dcdcdc;
+    -moz-box-shadow: inset -1px 0 0 0 #dcdcdc;
+  }
+  
+    ul#wv_fsCounter li#opens span.key, ul#counts li#opens span.key {
+      padding-right: 10px;
+      background: url('http://i2.campaignmonitor.com/worldview/demo/img/worldview/opens.png') no-repeat right center;
+    }
+  
+  ul#wv_fsCounter li#clicks, ul#counts li#clicks {
+    border-right: 1px solid rgba(255,255,255,0.5);
+    -webkit-box-shadow: inset -1px 0 0 0 #dcdcdc;
+    -moz-box-shadow: inset -1px 0 0 0 #dcdcdc;
+    padding-left: 9px;
+   }
+   
+    ul#wv_fsCounter li#clicks span.key, ul#counts li#clicks span.key {
+     padding-right: 10px;
+     background: url('http://i2.campaignmonitor.com/worldview/demo/img/worldview/clicks.png') no-repeat right center;
+    }
+  
+  ul#wv_fsCounter li#shares, ul#counts li#shares {
+    padding-left: 9px;
+  }
+    
+    ul#wv_fsCounter li#shares span.key, ul#counts li#shares span.key {
+     padding-right: 10px;
+     background: url('http://i2.campaignmonitor.com/worldview/demo/img/worldview/shares.png') no-repeat right center;
+    }
+  
+  ul#wv_fsCounter span.countAmount, ul#counts span.countAmount {
+    display: block;
+    font-weight: bold;
+    font-size: 21px;
+    margin-top: 7px;
+  }
+  
+  ul#counts span.countAmount {
+    font-size: 18px;
+    margin-top: 6px;
+  }
+  
+  span.key {
+    font-size: 10px;
+    color: #999;
+    text-transform: uppercase;
+  }
+
+/* Imageless Info Window Modal */
+  
+.wv_infoWindow {
+  margin: 5px;
+  font-family: "Helvetica Neue", Helvetica, Arial, Verdana, sans-serif;
+  display: block;
+/*  overflow: show;*/
+  height: 45px !IE;
+}
+
+.wv_infoWindow_point {
+  background: url("http://i2.campaignmonitor.com/worldview/demo/img/worldview/infoWindow_point.png") no-repeat bottom center;
+  position: absolute;
+  width: 100%;
+  height: 8px;
+  z-index: 2;
+  top: 37px;
+}
+
+.wv_infoWindow_point {
+  top: 38px !IE;
+  background: url("http://i2.campaignmonitor.com/worldview/demo/img/worldview/infoWindow_pointIE.gif") no-repeat bottom center !IE;
+}
+
+/* Imageless Info Window Modal — PURE CSS */
+
+.wv_imagelessInfoWindow {
+  background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#fafafa), to(#e8e8eb));
+  background: -moz-linear-gradient(0% 100% 90deg,#e8e8eb, #fafafa);
+  background-color: #e8e8eb;
+  display: inline-block;
+  border-radius: 5px;
+  -moz-border-radius: 5px;
+  -webkit-border-radius: 5px;
+  -webkit-box-shadow: 0 1px 3px 0 rgba(0,0,0,0.3), inset 0 1px 0 0 #fff, inset 0 0 0 1px rgba(255,255,255,0.1);
+  -moz-box-shadow: inset 0 1px 0 0 #fff, inset 0 0 0 1px rgba(255,255,255,0.1), 0 1px 3px 0 rgba(0,0,0,0.3);
+  text-shadow: 0 1px 0 #fff;
+  vertical-align: top;
+  position: relative;
+  overflow: show;
+  z-index: 1;
+  height: 38px;
+}
+
+/* Image Info Window Modal */
+
+.wv_imageInfoWindow {
+  vertical-align: top;
+  background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#fafafa), to(#e8e8eb));
+  background: -moz-linear-gradient(0% 100% 90deg,#e8e8eb, #fafafa);
+  background-color: #e8e8eb;
+  display: inline-block;
+  border-radius: 5px;
+  -moz-border-radius: 5px;
+  -webkit-border-radius: 5px;
+  -webkit-box-shadow: 0 1px 3px 0 rgba(0,0,0,0.3), inset 0 1px 0 0 #fff, inset 0 0 0 1px rgba(255,255,255,0.1);
+  -moz-box-shadow: inset 0 1px 0 0 #fff, inset 0 0 0 1px rgba(255,255,255,0.1), 0 1px 3px 0 rgba(0,0,0,0.3);
+  text-shadow: 0 1px 0 #fff;
+  position: relative;
+  z-index: 1;
+  overflow: show;
+  height: 38px;
+}
+
+  .wv_name {
+    color: #444;
+    font-size: 12px;
+    font-weight: bold;
+    margin: 0 0 2px 0;
+    display: block;
+    text-align: left;
+  }
+
+  .wv_info {
+    display: block;
+    color: #878787;
+    font-size: 9px;
+    text-transform: uppercase;
+    z-index: 3;
+    text-align: left;
+  }
+
+  .wv_info>.clicked {
+    font-weight: bold;
+    color: #2f82de;
+  }
+  
+  .wv_info>.opened,
+  .wv_info>.forwarded {
+    font-weight: bold;
+    color: #259e01;
+  }
+
+  .wv_info>.shared {
+    font-weight: bold;
+    color: #ed551a;
+  }
+  
+  .wv_info>.twitter {
+    font-weight: bold;
+    color: #23afe8;
+  }
+  
+  .wv_info>.facebook {
+    font-weight: bold;
+    color: #395b90;
+  }
+
+span.closeInfoWindow {
+  height: 7px;
+  width: 7px;
+  padding: 5px;
+  position: absolute;
+  top: 0px;
+  right: 0px;
+  text-indent: -9999px;
+  background: url("http://i2.campaignmonitor.com/worldview/demo/img/worldview/closeGlyph.png") no-repeat 7px 3px;
+  z-index: 9999;
+  cursor: pointer;
+  opacity: 0;
+  -webkit-transition-duration: .5s;
+}
+
+.wv_imageInfoWindow:hover span.closeInfoWindow,
+.wv_imagelessInfoWindow:hover span.closeInfoWindow {
+  opacity: 1;
+  -webkit-transition-duration: .2s;
+}
+
+.wv_imageInfoWindow,
+.wv_imagelessInfoWindow,
+.wv_infoWindow {
+  display: inline !IE;
+}
+.wv_imageInfoWindow, .wv_imagelessInfoWindow {
+  border: 1px solid #ccc !IE;
+}
+
+.wv_imageInfoWindow .wv_avatar {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+}
+
+.wv_imageInfoWindow .wv_avatar {
+/*  display: inline !IE;*/
+}
+
+.wv_imagelessInfoWindow .wv_modalContent {
+  vertical-align: top;
+  display: inline-block;
+  margin-left: 4px;
+  padding: 4px 12px 5px 5px !important;
+  z-index: 4;
+  white-space: nowrap;
+}
+
+.wv_imageInfoWindow .wv_modalContent {
+  vertical-align: top;
+  display: inline-block;
+  margin-left: 36px;
+  padding: 4px 12px 5px 5px !important;
+  z-index: 4;
+  white-space: nowrap;
+}
+
+.wv_imagelessInfoWindow .wv_modalContent,
+.wv_imageInfoWindow .wv_modalContent {
+  display: inline !IE;
+}
+
+/* Social Share Badges */
+
+.typeTag .wv_imageInfoWindow,
+.typeTag .wv_imagelessInfoWindow {
+  padding-left: 14px;
+}
+
+.typeTag .wv_avatar {
+  left: 18px;
+}
+
+span.shareBadge,
+span.openBadge,
+span.clickBadge {
+  width: 14px;
+  position: absolute;
+  height: 38px;
+  top: 0;
+  left: 0;
+  -webkit-border-top-left-radius: 3px;
+  -webkit-border-bottom-left-radius: 3px;
+  -moz-border-radius: 3px 0 0 3px;
+  -webkit-box-shadow: inset 0 1px 0 0 rgba(255,255,255,0.1);
+  -moz-box-shadow: inset 0 1px 0 0 rgba(255,255,255,0,1);
+}
+
+  span.shareBadge {
+    background-color: #f14c0e;
+    background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#ff7934), to(#f14c0e));
+    background-image: -moz-gradient(linear, 0% 0%, 0% 100%, from(#f14c0e), to(#ff7934));
+    border-right: 1px solid #f14c0e;    
+  }
+  
+  span.openBadge {
+    background-color: #269e00;
+    background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#69c04b), to(#269e00));
+    background-image: -moz-gradient(linear, 0% 0%, 0% 100%, from(#269e00), to(#69c04b));
+    border-right: 1px solid #269e00;
+  }
+  
+  span.clickBadge {
+    background-color: #2882de;
+    background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#64a7f2), to(#2882de));
+    background-image: -moz-gradient(linear, 0% 0%, 0% 100%, from(#2882de), to(#64a7f2));
+    border-right: 1px solid #2882de;
+  }
+
+span.openBadgeIcon,
+span.clickBadgeIcon,
+span.twitterBadgeIcon,
+span.facebookBadgeIcon,
+span.forwardBadgeIcon {
+  width: 14px;
+  position: absolute;
+  height: 38px;
+  top: 0;
+  left: 0;  
+}
+  
+  span.openBadgeIcon {
+    background: url("http://i2.campaignmonitor.com/worldview/demo/img/worldview/openGlyph.png") no-repeat center;
+  }
+  
+  span.clickBadgeIcon {
+    background: url("http://i2.campaignmonitor.com/worldview/demo/img/worldview/clickGlyph.png") no-repeat center;
+  }
+  
+  span.twitterBadgeIcon {
+    background: url("http://i2.campaignmonitor.com/worldview/demo/img/worldview/twitterGlyph.png") no-repeat center;
+  }
+
+  span.facebookBadgeIcon {
+    background: url("http://i2.campaignmonitor.com/worldview/demo/img/worldview/facebookGlyph.png") no-repeat center;
+  }
+  
+  span.forwardBadgeIcon {
+    background: url("http://i2.campaignmonitor.com/worldview/demo/img/worldview/forwardGlyph.png") no-repeat center;
+  }
+
+/* Worldview Stats */
+
+ul#countriesHeader {
+  background: #D3E9F7 url("http://i2.campaignmonitor.com/worldview/demo/img/bg/dash_sending_for.jpg") repeat-x top left;
+  border-top: 1px solid #D2E7F8;
+  border-bottom: 1px solid #C0DAE7;
+  border-left: 1px solid #C0DAE7;
+  border-right: 1px solid #C0DAE7;
+  padding: 7px 15px 6px 15px;
+  position: relative;
+  font-size:12px;
+  color:#6194b8;
+  text-shadow:1px 1px 0 #fff;
+  -webkit-border-top-left-radius: 6px;
+  -webkit-border-top-right-radius: 6px;
+  -moz-border-radius-topleft: 6px;
+  -moz-border-radius-topright: 6px;
+  overflow: hidden !important;
+  height: 19px !IE;
+
+  margin-top: 20px;
+  list-style-type: none;
+}
+
+ul#countriesHeader li.countryHeader {
+  float: left;
+  height: 18px;
+  line-height: 18px;
+  position: relative;
+}
+
+ul.countryListing {
+  list-style-type: none;
+  padding: 6px 15px 5px 15px;
+  border-bottom: 1px solid #e9e9e9;
+  height: 15px;
+}
+
+ul.countryListing:hover {
+  background-color: #fffbd4;
+}
+
+ul.countryListing li {
+  float: left;
+  color:#4c4c4c;
+}
+
+ul#countriesHeader li#opensHeader, ul#countriesHeader li#clicksHeader , ul#countriesHeader li#sharesHeader {
+  width: 15%;
+  float: right;
+  text-align: center;  
+} 
+
+ul.countryListing li.opensEntry, ul.countryListing li.clicksEntry, ul.countryListing li.sharesEntry {
+  width: 15%;
+  float: right;  
+  text-align: center;
+}
+
+ul#countriesHeader>li img {
+  margin-right: 4px;
+}
+
+ul#countriesHeader li#opensHeader span, ul#countriesHeader li#clicksHeader span, ul#countriesHeader li#sharesHeader span {
+  position: absolute;
+}
+
+span#fullscreen {
+  position: absolute;
+  left: 10px;
+  top: 66px;
+  width: 27px;
+  height: 27px;
+  text-indent: -9999px;
+  background:url("http://i2.campaignmonitor.com/worldview/demo/img/worldview/fullscreen_control.png") no-repeat 0 0;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+}
+
+span#fullscreen:hover {
+  background-position: 0 -27px;
+}
+
+span#fullscreen:active {
+  background-position: 0 -54px;
+}
+
+span#shareModal {
+  display: none;
+  position: absolute;
+  left: 10px;
+  top: 96px;
+  width: 27px;
+  height: 27px;
+  text-indent: -9999px;
+  background:url("http://i2.campaignmonitor.com/worldview/demo/img/worldview/share_control.png") no-repeat 0 0;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+}
+
+span#shareModal:hover {
+  background-position: 0 -27px;
+}
+
+span#shareModal:active {
+  background-position: 0 -54px;
+}
+
+#zoomControls {
+  position: absolute;
+  left: 10px;
+  top: 10px;
+  width: 27px;
+  height: 54px;
+  text-indent: -9999px;
+/*  background:url("http://i2.campaignmonitor.com/worldview/demo/img/worldview/zoom_controls.png") no-repeat 0 0;*/
+  padding: 0;
+  margin: 0;
+  overflow: hidden;
+}
+
+#zoomControls span#zoomIn, #zoomControls span#zoomOut {
+  text-indent: -9999px;
+  width: 27px;
+  height: 26px;
+  display: block;
+  padding: 0;
+  cursor: pointer;
+  background:url("http://i2.campaignmonitor.com/worldview/demo/img/worldview/zoom_controls.png") no-repeat 0 0;
+}
+
+#zoomControls span#zoomIn {
+  background-position: 0 0;
+}
+
+#zoomControls span#zoomIn:hover {
+  background-position: 0 -53px;
+}
+
+#zoomControls span#zoomIn:active {
+  background-position: 0 -106px;
+}
+
+#zoomControls span#zoomOut {
+  background-position: -27px -26px;
+}
+
+#zoomControls span#zoomOut:hover {
+  background-position: -27px -79px;
+}
+
+#zoomControls span#zoomOut:active {
+  background-position: -27px -132px;
+}
+
+#mapholder {
+  margin-top: 10px;
+}
+
+#replay {
+  width: 80px;
+  height: 70px;
+  padding: 20px 15px;
+  background-color: #000;
+  opacity: 0.9;
+  filter:alpha(opacity=90);
+  -ms-filter:"progid:DXImageTransform.Microsoft.Alpha(Opacity=90)";
+  border-radius: 10px;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  margin: -50px 0 0 -50px;
+  -webkit-transition-duration: 0.3s;
+  -webkit-box-shadow: 0 2px 8px rgba(0,0,0,0.45);
+  display: none;
+  text-decoration: none;
+}
+#replay:hover {
+  opacity: 0.8;
+  filter:alpha(opacity=80);
+  -ms-filter:"progid:DXImageTransform.Microsoft.Alpha(Opacity=80)";
+  -webkit-transition-duration: 0.1s;
+}
+#replay span.glyph {
+  background:url("http://i2.campaignmonitor.com/worldview/demo/img/worldview/replay.png") no-repeat 0 0;
+  width: 60px;
+  height: 48px;
+  display: block;
+  margin: 0 auto;
+  padding-bottom: 10px;
+}
+#replay span.text {
+  color: #fff;
+  text-transform: uppercase;
+  text-align: center;
+  font-size: 16px;
+  font-weight: bold;
+  -webkit-font-smoothing: antialiased;
+  display: block;
+}
+
+#demoInfo {
+  -webkit-font-smoothing: antialiased;
+}
+#demoInfo h2 {
+  color: #444;
+  display: block;
+  font-size: 21px;
+}
+#demoInfo p {
+  color: #888;
+  display: block;
+  line-height: 18px;
+}
+#demoInfo p a {
+  color: #2682de;
+  font-weight: bold;
+  text-decoration: none;
+}
