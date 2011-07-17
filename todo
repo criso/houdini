@@ -2,8 +2,10 @@
 ============
 client side 
 ============
+	//- get user's current location
 	- plot user on map
-	- plot friends on map
+	- get user's friends
+		- plot friends on map
 
 ============
 server side
@@ -12,3 +14,22 @@ server side
 		- controller
 
 	
+
+===============
+TDD
+===============
+- login with facebook
+
+- Map
+	- On Load 
+		- we should get the user's location (browser)
+		- a marker denoting the user's location should be placed	
+
+	- Map Marker
+		- on click 
+			- should show info about users in that location
+
+	- Friends on Map
+		- place a marker cluster denoting the region with quantity of friends
+			- Boston, would have a marker showing 5 friends in Boston
+			

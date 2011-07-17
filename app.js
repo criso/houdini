@@ -26,7 +26,7 @@ app.configure(function(){
 		auth.Facebook({
 			appId: fbId	,
 			appSecret: fb_secret,
-			scope: 'email',
+			scope: 'email, user_about_me, user_birthday, user_location, publish_stream, friends_location',
 			callback: fb_callback_addr
 		})
 	]));
@@ -91,5 +91,11 @@ io.sockets.on('connection', function (socket) {
 		socket.broadcast.emit('announcement', username + ' connected');
 		io.sockets.emit('usernames', usernames);
 	});
+
+	// sockets in the same room
+	// one room for each socket
+	
+	// socket.join('socket.id')
+	// socket.broadcast.to(socket.id).emit('connected');
 
 });
