@@ -1,0 +1,1 @@
+(function(b){var a={};b.publish=function(d,c){a[d]&&b.each(a[d],function(){this.apply(b,c||[])})};b.subscribe=function(c,d){if(!a[c]){a[c]=[]}a[c].push(d);return[c,d]};b.unsubscribe=function(d){var c=d[0];a[c]&&b.each(a[c],function(e){if(this==d[1]){a[c].splice(e,1)}})}})(jQuery);

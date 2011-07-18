@@ -4,9 +4,11 @@ html
     title= title
     script(src='https://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js')
     script(src='http://maps.googleapis.com/maps/api/js?sensor=false')
-    script(src='/javascripts/lib/underscore/underscore-min.js')
+    script(src='/javascripts/lib/underscore-min.js')
+    script(src='/javascripts/lib/pubsub.min.js')
     script(src='/socket.io/socket.io.js')
-    script(src='/javascripts/main.js')
+    script(src='/javascripts/gmap.js')
+    script(src='/javascripts/houdini.js')
     script(src='/javascripts/client.js')
     link(rel='stylesheet', href="http://code.google.com/apis/maps/documentation/javascript/examples/default.css")
   body
@@ -17,4 +19,5 @@ html
         a.fb_button_medium(href='/auth/facebook')
           span#fb_login_text.fb_button_text Connect with Facebook
 
-    !=body
+  body!=body
+  script(src='/javascripts/facebook.js')

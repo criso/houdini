@@ -30,6 +30,16 @@ TDD
 			- should show info about users in that location
 
 	- Friends on Map
-		- place a marker cluster denoting the region with quantity of friends
+		- place a marker cluster denoting the region/state with quantity of friends
 			- Boston, would have a marker showing 5 friends in Boston
-			
+
+
+
+
+================
+code
+================
+- load FB
+- get user's location
+- plot user's home location
+
