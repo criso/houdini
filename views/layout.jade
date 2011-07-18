@@ -14,10 +14,13 @@ html
   body
     div#fb-root
 
-    div#facebook_login(style='position:relative;float:right;width:200px;padding-top:10px;')
-      div#fb-login.fb_button(style='float:left; background-position: left -188px')                
-        a.fb_button_medium(href='/auth/facebook')
-          span#fb_login_text.fb_button_text Connect with Facebook
+    - if (everyauth.loggedIn)
+      p Hello #{everyauth.facebook.user.name}
+    - else 
+      div#facebook_login(style='position:relative;float:right;width:200px;padding-top:10px;')
+        div#fb-login.fb_button(style='float:left; background-position: left -188px')                
+          a.fb_button_medium(href='/auth/facebook')
+            span#fb_login_text.fb_button_text Connect with Facebook
 
   body!=body
   script(src='/javascripts/facebook.js')
