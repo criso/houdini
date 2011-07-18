@@ -4,9 +4,9 @@
 var express				= require('express'),
 		app						= module.exportappSes = express.createServer(),
 		io						= require('socket.io').listen(app),
-		connectAuth		= require('connect-auth');
+		connectAuth		= require('connect-auth'),
 		// Routes ( controllers )
-		// auth					= require('./controllers/auth.js');
+		auth					= require('./controllers/auth.js');
 
 // global
 mongoose	= require('mongoose');
@@ -24,8 +24,8 @@ app.configure(function(){
   app.use(express.session({ secret: 'houdinified' }));
 	app.use(connectAuth([
 		connectAuth.Facebook({
-			appId:  '193097990710217',
-			appSecret:  '1242bb60970bff12916baca437cb0492',
+			appId:		'193097990710217',
+			appSecret:	'1242bb60970bff12916baca437cb0492',
 			scope: 'email, user_about_me, user_birthday, user_location, publish_stream, friends_location',
 			callback:  'http://localhost:3000/auth/facebook'
 		})
@@ -77,56 +77,25 @@ app.get('/loggedIn', function(req, res) {
 });
 
 
-// app.get('/auth/facebook', auth.facebookLogIn);
-// app.get('/logout', auth.logOut);
+app.get('/auth/facebook', auth.facebookLogIn);
+app.get('/logout', auth.logOut);
 
 
-var loadFacebookAccount = function(facebook_details,loadCallback){
-  Account.findOne({ facebook_id: facebook_details.user.id }, function(err,account){
-    if(account){
-      loadCallback(account);
-    }
-    else{
-      var n = new Account();
-      n.email = facebook_details.user.email;
-      n.type = 1;
-      n.facebook_id = facebook_details.user.id;
-      n.date = new Date();
-      n.save(function(err){
-        loadCallback(n);
-      });
-    }
-  });
-};
-
-loadAccount = function(req,loadCallback){
-  if(req.isAuthenticated()){
-    //load account out of database
-    if(req.getAuthDetails().user.id){
-      //its a facebook login - try and grab out of db otherwise make a user off of fbook credentials
-      var fbook_details = req.getAuthDetails();
-      loadFacebookAccount(fbook_details,loadCallback);
-    }
-  }
-  else{
-    loadCallback(null);
-  }
-};
-
+// Works 
+// ===============
 // Auth Routes
-app.get('/auth/facebook', function(req,res) {
-  req.authenticate(['facebook'], function(error, authenticated) {
-    loadAccount(req,function(account){
-      console.log(req.headers.referer);
-      if(req.headers.referer.substring(0,23) === 'http://www.facebook.com'){
-        if(account && !account.username)
-          res.redirect('/edit/username');
-        else
-          res.redirect('/');
-      }
-    });
-  });
-});
+// app.get('/auth/facebook', function(req,res) {
+// 	req.authenticate(['facebook'], function (error, authenticated) {
+// 		if (authenticated) {
+// 			console.log('user: ' + JSON.stringify(req.getAuthDetails().user));
+// 			
+// 			res.redirect('/loggedIn');
+// 		} else {
+// 			// res.send('<h1> auth failed</h1>');	
+// 			console.log('auth failed');
+// 		}
+// 	});
+// });
 
 
 

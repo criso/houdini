@@ -42,24 +42,29 @@ exports.logOut = function (req, res, params) {
 
 exports.facebookLogIn = function (req, res) {
   req.authenticate(['facebook'], function(error, authenticated) {
-		res.redirect(req.session.facebook_redirect_url);
-// 
-// /app.get('/auth/facebook_callback', function(req, res){
-//     req.authenticate("facebook", function(error, authenticated) {
-//       res.redirect(req.session.facebook_redirect_url);
-//     });
-// });/
-//     loadAccount(req, function(account){
-//       // console.log(req.headers.referer);
-//       // if (req.headers.referer.substring(0,23) === 'http://www.facebook.com'){
-//         if (account && !account.username) {
-// 					// we won't go to this 
-//           res.redirect('/edit/username');
-// 				} else {
-//           res.redirect('/loggedIn');
-// 				}
-//       // }
-//     });
 
+		if (authenticated) {
+			// console.log('user: ' + JSON.stringify(req.getAuthDetails().user));
+			//
+			//
+			//NOT WORKING
+			// loadAccount(req, function(account){
+			// 	// console.log(req.headers.referer);
+			// 	// if (req.headers.referer.substring(0,23) === 'http://www.facebook.com'){
+			// 		if (account && !account.username) {
+			// 			// we won't go to this 
+			// 			res.redirect('/edit/username');
+			// 		} else {
+			// 			res.redirect('/loggedIn');
+			// 		}
+			// 	// }
+			// });
+
+			console.log('user: ' + JSON.stringify(req.getAuthDetails().user));
+			res.redirect('/loggedIn');
+		} else {
+		
+			console.log('--- auth failed');
+		}
   });
 };
