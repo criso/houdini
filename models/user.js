@@ -1,3 +1,7 @@
+var mongoose  = require('mongoose')
+  , Schema    = mongoose.Schema;
+
+
 var UserSchema = new Schema({
   username: String,
   type: Number,
@@ -6,4 +10,5 @@ var UserSchema = new Schema({
   date: Date
 });
 
-mongoose.model('User', UserSchema);
+module.exports = mongoose.model('User', UserSchema);
+

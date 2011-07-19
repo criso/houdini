@@ -24,7 +24,7 @@ App.Gmap.prototype = {
   }, 
 
   // markers 
-  FBFriendsMarkers: [],
+  FBFriendsMarkers: {},
   userMarker: {},
 
   // gmaps native utils
@@ -117,59 +117,133 @@ App.Gmap.prototype = {
   },
 
   // =========== facebook friends ============
-  addFBFriendsToMap: function () {
+
+  addFBFriendsToMap2: function () {
 
     var self        = this
       , utils       = this.utils
       , marker      = {}
       , infowindow  = {}
       , FBFriends   = App.Facebook.FBFriends
-      , i = 0
-      , y = 0;
+      , timer       = 0;
 
 
     _.each(FBFriends, function(friend){
       if (friend.location) {
-        // have to use a timeout so that we don't run 
-        // into query limit fail
-        setTimeout(function() {
-          // TODO
-          // have to store the locations
-          self.geoCoder.geocode({ address: friend.location.name }, function(results, status) {
+        $.get('/location/' + friend.location.name, function(resp){
 
-            if (status === google.maps.GeocoderStatus.OK) {
-              var formatted_address = results[0].formatted_address
-                , position          = results[0].geometry.location
-                , location_name     = utils.getParsedLocation(formatted_address);
+          // we don't have that location stored  
+          if (resp.error){
+            // find a location 
+            self.getGeo(resp.location, friend, timer++, function(result) {
+              if (!result.error) {
 
-              if (self.FBFriendsMarkers[location_name]) {
-                console.log('Appending to friends.markers: ', friend);
-                self.FBFriendsMarkers[location_name].friends.push(friend);
+                var grouped_location = result.grouped_location;
 
-              } else {
-                console.log('setting marker on ' + location_name, ++y);
+                if (self.getFriendsMarkerByGroupLoc(grouped_location)) {
+                  self.FBFriendsMarkers[grouped_location]
+                  .friends.push(friend); 
 
-                // should only drop a marker on a location 
-                // that doesn't currently have a marker
-                self.dropMarker(position, location_name);
+                  console.log('Appending to friends.markers[GEO]: ', friend);
+                } else {
+                  console.log('setting marker[GEO] ' + grouped_location);
 
-                // self.FBFriendsMarkers.push( friend_location );
-                self.FBFriendsMarkers[location_name] = {
-                  position: position,
-                  friends: [friend]
-                };
-              }
+                  self.dropMarker(result.position, grouped_location);
+                  self.addToFriendsMarkers(grouped_location, {
+                    position: result.position,
+                    friends: [friend]
+                  });
+                }
+              } 
+            });
 
+          } else {
+            // we have a location stored  
+            var location    = resp.success
+              , grouped_location = location.grouped_location;
+
+            console.log('We have location ', location);
+
+            if (self.getFriendsMarkerByGroupLoc(grouped_location)) {
+              self.FBFriendsMarkers[grouped_location].friends.push(friend); 
+              console.log('Appending to friends.markers[MEM]: ', friend);
             } else {
-              console.log('fail: ', status);  
+              console.log('setting marker[MEM]' + grouped_location);
+
+              // have to convert the coordinates into a google object
+              location.position = new google.maps.LatLng(location.position.Ka,
+                                                    location.position.La);
+
+              self.dropMarker(location.position, grouped_location);
+              self.addToFriendsMarkers(grouped_location, {
+                position: location.position,
+                friends: [friend]
+              });
             }
-          });
-          
-        }, i * 1000); 
-        i++;
-      } 
+
+          }
+        });
+      }
     });
   },
+
+  addToFriendsMarkers: function (grouped_location, settings) {
+    this.FBFriendsMarkers[grouped_location] = settings;
+  },
+
+  getFriendsMarkerByGroupLoc: function (grouped_location) {
+    return this.FBFriendsMarkers[grouped_location] || null;
+  },
+
+  // post was too slow
+  // new school stuff going on here
+  saveLocation: function (locationObj) {
+    socket.emit('add location', locationObj);
+  },
+
+  getGeo: function (fbLocation, friend, timer, _fn) {
+    var self = this
+      , utils = this.utils;
+
+    setTimeout(function() {
+      self.geoCoder.geocode( {address: fbLocation}, 
+        function(results, status) {
+
+        if (status === google.maps.GeocoderStatus.OK) {
+
+          var formatted_address = results[0].formatted_address
+            , position  = results[0].geometry.location
+            , grouped_location = utils.getParsedLocation(formatted_address);
+
+          var location = {
+            formatted_address:  formatted_address,
+            grouped_location:   grouped_location,
+            fbLocation:         fbLocation,
+            position:           position 
+          };
+
+          _fn(location); // execute callback
+
+          // cache the location for future use
+          // position can't be sent as a google object
+          var post_location = _.extend(location, {
+              position: {
+                Ka: location.position.Ka,
+                La: location.position.La
+              }
+          });
+          self.saveLocation(post_location);
+
+        } else {
+          console.log('Failed to find location: ', status); 
+          _fn({error: status});
+        }
+
+      });
+    }, timer * 1000);
+
+  },
+
 
   utils: {
     // larger grouping of friends adresses  
@@ -179,14 +253,15 @@ App.Gmap.prototype = {
         location  = addr,
         country   = '';
 
-      if (match = addr.match(/\s([A-Z]{2})/)) {       // Boston, MA, USA
+      if (match = addr.match(/\s([A-Z]{2})/)) {       
+          // Boston, MA, USA
         location = match[1];
-      } else if (addr.split(',').length === 2) {      // Rome, Italy
+      } else if (match = addr.match(/\s([\w\s]*),/)){ 
+        // Westminster, London, UK 
+        location = match[1];
+      } else if (addr.split(',').length === 2) {      
+        // Rome, Italy
         location = addr.split(',')[0];
-      } else if (match = addr.match(/-\s(\w*),/)) {   // Vitoria - ES, Brazil
-        location = match[1];
-      } else if (match = addr.match(/\s([\w\s*]),/)){ // Westminster, London, UK 
-        location = match[1];
       }
 
       if (country = addr.match(/, (\w*)$/)) { country = '_' + country[1]; }
@@ -197,6 +272,5 @@ App.Gmap.prototype = {
       return location.toLowerCase();
     }
   }
-
-
 };
+

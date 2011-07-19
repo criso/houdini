@@ -5,6 +5,7 @@ var express       = require('express')
   , app           = module.exportappSes = express.createServer()
   , io            = require('socket.io').listen(app)
   , everyauth     = require('everyauth')
+  , mongoose      = require('mongoose')
   , Promise       = everyauth.Promise;
 
 var oauthconf     = require('./conf')
@@ -12,10 +13,6 @@ var oauthconf     = require('./conf')
 
 
 
-// global
-// ======
-mongoose  = require('mongoose');
-Schema    = mongoose.Schema;
 
 // User authentication
 // ===================
@@ -30,7 +27,10 @@ everyauth
       userUtils.findOrCreateUserByFacebookData(fbUserMetadata, promise);
       return promise;
     })
-    .scope(oauthconf.fb.scope) 
+    .scope(oauthconf.fb.scope)
+    .moduleErrback( function (err) {
+      console.log("error: ", err);
+    })
     .redirectPath('/');
 
 
@@ -67,9 +67,6 @@ app.configure('production', function(){
 // mongoose config
 // ================
 mongoose.connect(app.set('db-uri'));
-require('./models/user.js');
-User = mongoose.model('User');
-
 
 
 // Routes
@@ -78,31 +75,128 @@ app.get('/', function(req, res){
   res.render('index', { title: 'Express' });
 });
 
+var locationApi = require('./controllers/location.js')
+  , friendsApi  = require('./controllers/friends.js');
 
-everyauth.helpExpress(app);
+app.get('/location/:name', locationApi.show);
 
-app.listen(3000);
-console.log("Express server listening on port %d", app.address().port);
-
+app.post('/friends', friendsApi.create);
 
 
 
 
 // Socket
 // =======
-var usernames = {};
+var users = {}
+  , user_friends   = {}
+  , room_count = 1;
+
+var FBFriends = {};
+
+var utils = require('util');
+
 io.sockets.on('connection', function (socket) {
 
-  socket.on('user', function (username) {
-    usernames[username] = socket.username = username;
-    socket.broadcast.emit('announcement', username + ' connected');
-    io.sockets.emit('usernames', usernames);
+  socket.on('user', function (resp) {
+
+    var id = resp.id
+      , user_name = resp.first_name; // not all users have username
+
+    users[id] = user_name;
+    socket.fbID = id;
+
+    // console.log(utils.inspect(socket));
+    
+    socket.broadcast.emit('announcement', resp.first_name + ' connected');
+    io.sockets.emit('users', users);
+
+    // usernames[username] = socket.username = username;
+    // socket.broadcast.emit('announcement', username + ' connected');
+    // io.sockets.emit('usernames', usernames);
+
+    // if there are friends here - get put in the same room ?
   });
+
+  socket.on('private msg', function (message) {
+    var from  = socket.fbID
+      , toArr = socket.friends;
+
+    var sockets = io.sockets;
+// ===================================
+// Works inconsistently
+// ===================================
+//
+
+
+
+   // var sockets = socket 
+    // console.log("Mangaer: " + utils.inspect(socket.manager.sockets));
+    for (var key in socket.manager.open) {
+      // console.log('Socket: ', io.sockets[key]);
+      var open = key;
+
+      for (var k in sockets) {
+        if (k === 'sockets') {
+          console.log('K: ', k);
+          console.log('sockets: '  + utils.inspect(sockets[k][open]));
+          var id = sockets[k][open].fbID;
+          console.log("id: " + id);
+          if (toArr.indexOf(id) !== -1) {
+            console.log('------ friends ----' +  from + ' to: ' + id);
+          } else {
+            console.log('-Not Friends ----' +  from + ' to: ' + id);
+          }
+          // console.log(sockets[k]);
+        }
+      }
+    }
+   
+    // for (var i in sockets) {
+    //   if (sockets[i].fbID) {
+    //     var id = sockets[i].fbID;
+    //     
+    //     if (toArr.indexOf(id) !== -1) {
+    //       console.log('------ friends ----' +  from + ' to: ' + id);
+    //     } 
+    //   
+    //   }
+    // }
+  
+    // console.log(utils.inspect(socket));
+    // if (io.sockets.indexOf(socket.fbID) !== -1) {
+    //   console.log('someone is online'); 
+    //   console.log('from: ' + socket.fbID);
+    // } else {
+    //   console.log('no one is online'); 
+    // }
+  });
+
+  socket.on('friends', function (friends) {
+    socket.friends = friends; // allowed friends
+  });
+
+  socket.on('add location', function (location) {
+    locationApi.create(location);
+  });
+
+
+// io.sockets.on('connection', function (socket) {
+//   socket.join('justin bieber fans');
+//   socket.broadcast.to('justin bieber fans').emit('new fan');
+//   io.sockets.in('rammstein fans').emit('new non-fan');
+// });
+
 
   // sockets in the same room
   // one room for each socket
   
   // socket.join('socket.id')
   // socket.broadcast.to(socket.id).emit('connected');
-
 });
+
+
+
+everyauth.helpExpress(app);
+
+app.listen(3000);
+console.log("Express server listening on port %d", app.address().port);
