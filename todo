@@ -25,13 +25,14 @@ TDD
     - we should get the user's location (browser)
     - a marker denoting the user's location should be placed  
 
+    - Friends on Map
+      - place a marker cluster denoting the region/state with quantity of friends
+        - Boston, would have a marker showing 5 friends in Boston
+
   - Map Marker
     - on click 
       - should show info about users in that location
 
-  - Friends on Map
-    - place a marker cluster denoting the region/state with quantity of friends
-      - Boston, would have a marker showing 5 friends in Boston
 
 
 
@@ -52,3 +53,21 @@ which solves the "who's online" problem
 - on client side and check the ids of my friends
   and compare it to the annouced ids to know who's 
   online
+
+
+- UserA and UserB are online
+  - when userA places a pin (UserB can see the pin being placed)
+    - show a box with: "What would you like to do here?"
+      - this box is essentially a chat room now
+        - UserA types a message (userB can see) 
+      
+when users come online
+  - Place pin on map
+    - Grow notifications on top right 
+
+- On infoWindow - use:
+  http://docs.jquery.com/UI/Effects/Drop
+  open
+    $(this.div_).show("drop", { direction: "down" }, 300);
+  close
+		$(this.div_).hide("drop", { direction: "up" }, dropTime);

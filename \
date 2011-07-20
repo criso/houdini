@@ -8,13 +8,13 @@ var express       = require('express')
   , mongoose      = require('mongoose')
   , Promise       = everyauth.Promise;
 
-var _ = require('underscore');
+require('underscore')
 
 var oauthconf     = require('./conf')
   , userUtils     = require('./lib/user_helpers.js');
 
 
-everyauth.debug = true;
+
 
 // User authentication
 // ===================
@@ -33,7 +33,6 @@ everyauth
     .moduleErrback( function (err) {
       console.log("error: ", err);
     })
-    .moduleTimeout( 4000 ) // Wait 4 seconds before timing out any step
     .redirectPath('/');
 
 
@@ -100,26 +99,26 @@ var utils = require('util');
 
 io.sockets.on('connection', function (socket) {
 
-  // User disconnected 
   socket.on('disconnect', function () {
+
     _.each(users, function (user) {
-      if (user.socketID === socket.id) {
-        io.sockets.emit('user disconnected', user.name + ' disconnected');
-        delete user;
+      if (user.socketID == socket.id) {
+        sockets.emit(user.name + ' disconnected');
       }
     });
+
   });
 
   socket.on('user', function (resp) {
     var id = resp.id;
 
-    users[id] = {
-      name: resp.first_name + ' ' + resp.last_name,
-      position: resp.position,
-      // =>  this is what we'll look for 
-      // to determine which users are in the private chat
-      socketID: socket.id 
-    };
+  users[id] = {
+    name: resp.first_name + ' ' + resp.last_name,
+    position: resp.position,
+    // =>  this is what we'll look for 
+    // to determine which users are in the private chat
+    socketID: socket.id 
+  };
 
     socket.fbID = id;
 

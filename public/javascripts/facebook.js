@@ -57,6 +57,15 @@ App.Facebook = ({
     FB.api('/me', function(resp) {
       if (resp) {
         self.FBUser = resp;
+
+		// TODO - still need to make sure that 
+		// we have a valid location here
+		var user = resp;
+		user.position = {
+			Ka: App.world.initialLocation.Ka,
+			La: App.world.initialLocation.La
+		};
+
         socket.emit('user', resp);   
       }
 
@@ -71,6 +80,9 @@ App.Facebook = ({
     FB.api('/me/friends/?fields=name,picture,location', function(resp) {
       if (resp && resp.data){
         self.FBFriends = resp.data;
+
+		$.publish('/FB/Friends/loaded');
+
         if (typeof _fn === 'function')  _fn(self.FBFriends);
 
         socket.emit('friends', _.pluck(resp.data, 'id'));

@@ -10,8 +10,11 @@ App.Gmap = function(el, options) {
   this.map = new google.maps.Map(document.getElementById(el), this.mapOptions);
 
   this.getBrowserLocation(function(location, markerContent) { 
-    self.map.setCenter(location);
-    self.dropMarker(location, markerContent);
+    // self.map.setCenter(location);
+    self.dropMarker(location, markerContent,{
+      image: 'images/blue_pin.png'
+    });
+
   }); 
   
 };
@@ -19,8 +22,11 @@ App.Gmap = function(el, options) {
 
 App.Gmap.prototype = {
   mapOptions: {
-    zoom: 10,
-    mapTypeId: google.maps.MapTypeId.ROADMAP
+    minzoom: 2,
+    zoom: 4,
+    // mapTypeId: google.maps.MapTypeId.ROADMAP,
+    mapTypeId: google.maps.MapTypeId.TERRAIN,
+    center: new google.maps.LatLng(37.0902400,-95.7128910)
   }, 
 
   // markers 
@@ -53,13 +59,25 @@ App.Gmap.prototype = {
   // drop a marker on the map
   // `position` => google.maps.LatLng
   // `markerContent` => string
-  dropMarker: function (position, markerContent) {
+  dropMarker: function (position, markerContent, icon) {
     var self = this;
 
     var marker = new google.maps.Marker({
       position:   position,
       map:        this.map,
-      animation:  google.maps.Animation.DROP
+      animation:  google.maps.Animation.DROP,
+      icon: new google.maps.MarkerImage(
+        icon.image,
+        new google.maps.Size(8, 18),
+        new google.maps.Point(0, 0),
+        new google.maps.Point(0, 18)
+      ),
+      shadow: new google.maps.MarkerImage(
+        'images/pin_shadow.png',
+        new google.maps.Size(17, 12),
+        new google.maps.Point(0, 0),
+        new google.maps.Point(0, 12)
+      )
     });
 
     var infowindow = new google.maps.InfoWindow({ content: markerContent });
@@ -69,66 +87,19 @@ App.Gmap.prototype = {
       infowindow.open(self.map, marker);
     });
 
-  // function dropMarker(latitude, longitude, marker_url, infoWindowContent, openInfoWindow) {
-  //     var anim = (openInfoWindow == true) ? google.maps.Animation.DROP : null;
-  //     var marker = new google.maps.Marker({
-  //       position: new google.maps.LatLng(latitude, longitude),
-  //       map: map,
-  //       animation: anim,
-  //       icon: new google.maps.MarkerImage(
-  //         marker_url,
-  //         new google.maps.Size(8, 18),
-  //         new google.maps.Point(0, 0),
-  //         new google.maps.Point(0, 18)
-  //       ),
-  //       shadow: new google.maps.MarkerImage(
-  //         urls.MarkerShadow,
-  //         new google.maps.Size(17, 12),
-  //         new google.maps.Point(0, 0),
-  //         new google.maps.Point(0, 12)
-  //       )
-  //     });
-  //     var iw = new WorldViewInfoWindow({
-  //       map: map,
-  //       latlng: marker.getPosition(),
-  //       content: infoWindowContent
-  //     });
-  //     google.maps.event.addListener(marker, 'click', function () {
-  //       if (iw.isOpen()) {
-  //         iw.close();
-  //       } else {
-  //         iw.open();
-  //       }
-  //     });
-  //     if (openInfoWindow) {
-  //       setTimeout(function () {
-  //         iw.open();
-  //         setTimeout(function () { iw.close(); }, INFO_WINDOW_DISPLAY_TIME);
-  //       }, 350); // Caters for drop animation time
-  //     }
-  //     markers.push(marker);
-  //     infoWindows.push(iw);
-  //     // If we're opening the info window, it isn't an initial drop of markers,
-  //     // so we want to clean up any excess old ones.
-  //     if (openInfoWindow) {
-  //       cleanup();
-  //     }
-  // }
   },
 
   // =========== facebook friends ============
 
-  addFBFriendsToMap2: function () {
+  addFBFriendsToMap: function (FBfriends) {
 
     var self        = this
       , utils       = this.utils
       , marker      = {}
       , infowindow  = {}
-      , FBFriends   = App.Facebook.FBFriends
       , timer       = 0;
 
-
-    _.each(FBFriends, function(friend){
+    _.each(FBfriends, function(friend){
       if (friend.location) {
         $.get('/location/' + friend.location.name, function(resp){
 
@@ -148,7 +119,10 @@ App.Gmap.prototype = {
                 } else {
                   console.log('setting marker[GEO] ' + grouped_location);
 
-                  self.dropMarker(result.position, grouped_location);
+                  self.dropMarker(result.position, grouped_location, {
+                    image: 'images/green_pin.png'
+                  });
+
                   self.addToFriendsMarkers(grouped_location, {
                     position: result.position,
                     friends: [friend]
@@ -174,7 +148,10 @@ App.Gmap.prototype = {
               location.position = new google.maps.LatLng(location.position.Ka,
                                                     location.position.La);
 
-              self.dropMarker(location.position, grouped_location);
+              self.dropMarker(location.position, grouped_location, {
+                image: 'images/green_pin.png'
+              });
+
               self.addToFriendsMarkers(grouped_location, {
                 position: location.position,
                 friends: [friend]
