@@ -11,10 +11,7 @@ App.Gmap = function(el, options) {
 
   this.getBrowserLocation(function(location, markerContent) { 
     // self.map.setCenter(location);
-    self.dropMarker(location, markerContent,{
-      image: 'images/blue_pin.png'
-    });
-
+    self.dropMarker(location, markerContent, self.icon.online);
   }); 
   
 };
@@ -29,6 +26,13 @@ App.Gmap.prototype = {
     center: new google.maps.LatLng(37.0902400,-95.7128910)
   }, 
 
+  icon: {
+    shadow:   'images/pin_shadow.png',
+    online:   'images/green_pin.png',
+    offline:  'images/orange_pin.png'
+  },
+
+
   // markers 
   FBFriendsMarkers: {},
   userMarker: {},
@@ -41,6 +45,39 @@ App.Gmap.prototype = {
 
   // get user's location from browser  
   getBrowserLocation: function (_fn) {
+
+    // Testing code START
+    var test_location;
+    switch (window.location.hash) {
+      case '#userB':
+        // florida
+        test_location = {
+          Ka: 25.790654,
+          La: -80.1300455
+        };
+      break;
+
+        // california
+      case '#userC':
+        test_location = {
+          La: -118.39951940000003,
+          Ka: 33.8622366
+        };
+      break;
+
+      default:
+        test_location = null;
+      break;
+    }
+
+    if (test_location) {
+      this.initialLocation = new google.maps.LatLng(test_location.Ka, test_location.La);
+      _fn(this.initialLocation, 'This is Home');
+      console.log('setting <userB> in florida');
+      return;
+    }
+    // Testing code END
+
     var self = this;
     // Try W3C Geolocation (Preferred)
     if (navigator.geolocation) {
@@ -59,7 +96,7 @@ App.Gmap.prototype = {
   // drop a marker on the map
   // `position` => google.maps.LatLng
   // `markerContent` => string
-  dropMarker: function (position, markerContent, icon) {
+  dropMarker: function (position, markerContent, iconImg) {
     var self = this;
 
     var marker = new google.maps.Marker({
@@ -67,13 +104,13 @@ App.Gmap.prototype = {
       map:        this.map,
       animation:  google.maps.Animation.DROP,
       icon: new google.maps.MarkerImage(
-        icon.image,
+        iconImg,
         new google.maps.Size(8, 18),
         new google.maps.Point(0, 0),
         new google.maps.Point(0, 18)
       ),
       shadow: new google.maps.MarkerImage(
-        'images/pin_shadow.png',
+        this.icon.shadow,
         new google.maps.Size(17, 12),
         new google.maps.Point(0, 0),
         new google.maps.Point(0, 12)
@@ -115,13 +152,11 @@ App.Gmap.prototype = {
                   self.FBFriendsMarkers[grouped_location]
                   .friends.push(friend); 
 
-                  console.log('Appending to friends.markers[GEO]: ', friend);
+                  // console.log('Appending to friends.markers[GEO]: ', friend);
                 } else {
-                  console.log('setting marker[GEO] ' + grouped_location);
+                  // console.log('setting marker[GEO] ' + grouped_location);
 
-                  self.dropMarker(result.position, grouped_location, {
-                    image: 'images/green_pin.png'
-                  });
+                  self.dropMarker(result.position, grouped_location, icon.offline);
 
                   self.addToFriendsMarkers(grouped_location, {
                     position: result.position,
@@ -136,21 +171,19 @@ App.Gmap.prototype = {
             var location    = resp.success
               , grouped_location = location.grouped_location;
 
-            console.log('We have location ', location);
+            // console.log('We have location ', location);
 
             if (self.getFriendsMarkerByGroupLoc(grouped_location)) {
               self.FBFriendsMarkers[grouped_location].friends.push(friend); 
-              console.log('Appending to friends.markers[MEM]: ', friend);
+              // console.log('Appending to friends.markers[MEM]: ', friend);
             } else {
-              console.log('setting marker[MEM]' + grouped_location);
+              // console.log('setting marker[MEM]' + grouped_location);
 
               // have to convert the coordinates into a google object
               location.position = new google.maps.LatLng(location.position.Ka,
                                                     location.position.La);
 
-              self.dropMarker(location.position, grouped_location, {
-                image: 'images/green_pin.png'
-              });
+              self.dropMarker(location.position, grouped_location, icon.offline);
 
               self.addToFriendsMarkers(grouped_location, {
                 position: location.position,
@@ -244,7 +277,7 @@ App.Gmap.prototype = {
       if (country = addr.match(/, (\w*)$/)) { country = '_' + country[1]; }
 
       location += country;
-      console.log('PARSED: ' +  addr + ' to : ', location);
+      // console.log('PARSED: ' +  addr + ' to : ', location);
 
       return location.toLowerCase();
     }

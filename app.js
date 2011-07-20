@@ -90,112 +90,71 @@ app.post('/friends', friendsApi.create);
 
 // Socket
 // =======
-var users = {}
-  , user_friends   = {}
-  , room_count = 1;
-
-var FBFriends = {};
-
 var utils = require('util');
+
+var users     = {}
+  , userPool  = {};
+
+// var userPool = [{
+//   name: username,
+//   socketID: socket.id,
+//   facebookID: id
+// }];
+
 
 io.sockets.on('connection', function (socket) {
 
-  // User disconnected 
-  socket.on('disconnect', function () {
-    _.each(users, function (user) {
-      if (user.socketID === socket.id) {
-        io.sockets.emit('user disconnected', user.name + ' disconnected');
-        delete user;
+  // once a user is connected
+  // we'll add that user to the userPool
+  // and associate it's socketID with it's FBID
+  socket.on('user', function (userData) {
+    var facebook_id = userData.id;
+
+    userPool[facebook_id] = {
+      name:       userData.first_name + ' ' + userData.last_name,
+      socketID:   socket.id,
+      facebookID: facebook_id,
+      position: {
+        Ka: userData.position.Ka,
+        La: userData.position.La
       }
-    });
-  });
-
-  socket.on('user', function (resp) {
-    var id = resp.id;
-
-    users[id] = {
-      name: resp.first_name + ' ' + resp.last_name,
-      position: resp.position,
-      // =>  this is what we'll look for 
-      // to determine which users are in the private chat
-      socketID: socket.id 
     };
 
-    socket.fbID = id;
+    // everybody but the client
+    socket.broadcast.emit('announcement', userData.first_name + ' connected');
 
-  // everybody but the client
-    socket.broadcast.emit('announcement', resp.first_name + ' connected');
-
-  // everbody
-    io.sockets.emit('users', users);
+    // send a broadcast to *everyone* 
+    // announcing which users are online
+    io.sockets.emit('users online', userPool);
 
     // usernames[username] = socket.username = username;
     // socket.broadcast.emit('announcement', username + ' connected');
     // io.sockets.emit('usernames', usernames);
-
     // if there are friends here - get put in the same room ?
   });
 
-  socket.on('private msg', function (message) {
-    var from  = socket.fbID
-      , toArr = socket.friends;
 
-    var sockets = io.sockets;
-// ===================================
-// Works inconsistently
-// ===================================
-//
-
-
-
-   // var sockets = socket 
-    // console.log("Mangaer: " + utils.inspect(socket.manager.sockets));
-    for (var key in socket.manager.open) {
-      // console.log('Socket: ', io.sockets[key]);
-      var open = key;
-
-      for (var k in sockets) {
-        if (k === 'sockets') {
-          console.log('K: ', k);
-          console.log('sockets: '  + utils.inspect(sockets[k][open]));
-          var id = sockets[k][open].fbID;
-          console.log("id: " + id);
-          if (toArr.indexOf(id) !== -1) {
-            console.log('------ friends ----' +  from + ' to: ' + id);
-          } else {
-            console.log('-Not Friends ----' +  from + ' to: ' + id);
-          }
-          // console.log(sockets[k]);
-        }
-      }
-    }
-   
-    // for (var i in sockets) {
-    //   if (sockets[i].fbID) {
-    //     var id = sockets[i].fbID;
-    //     
-    //     if (toArr.indexOf(id) !== -1) {
-    //       console.log('------ friends ----' +  from + ' to: ' + id);
-    //     } 
-    //   
-    //   }
-    // }
-  
-    // console.log(utils.inspect(socket));
-    // if (io.sockets.indexOf(socket.fbID) !== -1) {
-    //   console.log('someone is online'); 
-    //   console.log('from: ' + socket.fbID);
-    // } else {
-    //   console.log('no one is online'); 
-    // }
-  });
-
+  // if any of the friends.ids are in the userPool
+  // array - send call back leting them know that 
+  // they're friend is connected
   socket.on('friends', function (friends) {
     socket.friends = friends; // allowed friends
   });
 
   socket.on('add location', function (location) {
     locationApi.create(location);
+  });
+
+
+  // User disconnected
+  socket.on('disconnect', function () {
+    _.each(userPool, function (user) {
+      if (user.socketID === socket.id) {
+        console.log('==== removing user');
+        io.sockets.emit('user disconnected', user.name + ' disconnected');
+        user = null;
+      }
+    });
   });
 
 

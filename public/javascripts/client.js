@@ -20,17 +20,20 @@ socket.on('location', function(location) {
   console.log('Location  => ', location); 
 });
 
-socket.on('users', function(users) {
-  console.log('Users: ', users);
-	var id = App.Facebook.FBUser.id;
-  
-  // remove the current user from the list
-  delete users[id];
+socket.on('users online', function(users) {
 
+  console.log(_.size(users) + '  =>  users online: ', users);
+
+  var loc;
   _.each(users, function (user) {
-    var loc = new google.maps.LatLng( user.position.Ka, user.position.La);
-    console.log('dropping marker for: ', user.name);
-    App.world.dropMarker(loc, user.name);
+    if (user.facebookID === App.Facebook.FBUser.id) { 
+      console.log("skipping user[client]: ", user.name); 
+      return; 
+    }
+
+    console.log('dropping marker for <online> user: ' + user.name + ' @ ',user.position);
+    loc = new google.maps.LatLng( user.position.Ka, user.position.La);
+    App.world.dropMarker(loc, user.name, App.world.icon.online);
   });
 
 });

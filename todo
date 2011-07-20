@@ -3,15 +3,34 @@
 client side 
 ============
   //- get user's current location
-  - plot user on map
-  - get user's friends
-    - plot friends on map
+  /*- plot user on map*/
+  /*- get user's friends*/
+  /*- plot friends on map*/
+
+  - on click display users under that pin
+    - display which logged-in users are online
+      (if there are 5 users under the same pin,
+       we need to show which of the five is online)
+      * The pin should still change color
+
+  - fake initial location through the query string
+
+  - on click on the map 
+    - set a pin and create a overlay box
+    - with input 
+  - During this the other user should see the pin
+    on their end
+
+
+------------ when we place the icons on the map - they're set as offline
+
+
 
 ============
 server side
 ============
-  - mvc structure
-    - controller
+  /*- mvc structure*/
+    /*- controller*/
 
   
 

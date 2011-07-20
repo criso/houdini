@@ -58,19 +58,11 @@ App.Facebook = ({
       if (resp) {
         self.FBUser = resp;
 
-		// TODO - still need to make sure that 
-		// we have a valid location here
-		var user = resp;
-		user.position = {
-			Ka: App.world.initialLocation.Ka,
-			La: App.world.initialLocation.La
-		};
+		$.publish('/FB/user/loaded', [self.FBUser]);
 
-        socket.emit('user', resp);   
+		// if callback was provided - returns FBUser  
+		if (typeof _fn === 'function')  _fn(self.FBUser); 
       }
-
-      // if callback was provided - returns FBUser  
-      if (typeof _fn === 'function')  _fn(self.FBUser); 
     });
   },
 
