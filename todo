@@ -43,6 +43,14 @@ TDD
   - On Load 
     - we should get the user's location (browser)
     - a marker denoting the user's location should be placed  
+    - all *online* users should have markers placed 
+    - user disconnects 
+      -if friend
+        pin icon should change to offline
+      -else
+        pin should be removed 
+
+
 
     - Friends on Map
       - place a marker cluster denoting the region/state with quantity of friends

@@ -149,8 +149,7 @@ App.Gmap.prototype = {
                 var grouped_location = result.grouped_location;
 
                 if (self.getFriendsMarkerByGroupLoc(grouped_location)) {
-                  self.FBFriendsMarkers[grouped_location]
-                  .friends.push(friend); 
+                  self.FBFriendsMarkers[grouped_location].friends.push(friend); 
 
                   // console.log('Appending to friends.markers[GEO]: ', friend);
                 } else {

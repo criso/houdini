@@ -151,7 +151,7 @@ io.sockets.on('connection', function (socket) {
     _.each(userPool, function (user) {
       if (user.socketID === socket.id) {
         console.log('==== removing user');
-        io.sockets.emit('user disconnected', user.name + ' disconnected');
+        io.sockets.emit('user disconnected', user);
         user = null;
       }
     });

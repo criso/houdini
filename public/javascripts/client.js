@@ -4,9 +4,6 @@ socket.on('connect', function () {
   console.log('socket connected');
 });
 
-socket.on('user disconnected', function (msg) {
-  console.log(msg);
-});
 
 socket.on('announcement', function (msg) {
   console.log('announcement: ', msg);
@@ -20,6 +17,9 @@ socket.on('location', function(location) {
   console.log('Location  => ', location); 
 });
 
+
+// receives a call containing all the users online
+// call gets emited as soon as a user logs in
 socket.on('users online', function(users) {
 
   console.log(_.size(users) + '  =>  users online: ', users);
@@ -38,14 +38,20 @@ socket.on('users online', function(users) {
 
 });
 
-socket.on('stored friends', function (friends) {
-  console.log('Friends: ', friends);
+
+// a user has disconnected
+// if the user is a `FB friend` => change pin to offline pin
+// else  =>  remove pin from map
+socket.on('user disconnected', function (user) {
+  if (App.Facebook.isFriend(user.facebookID)) {
+    App.world.setMarkerOffline(user);
+  } else {
+    App.world.removeMarker(user);
+  }
 });
 
 
-function run() {
-  socket.emit('private msg', {
-    message: 'this goes out to all my homies'
-  });
-}
+socket.on('stored friends', function (friends) {
+  console.log('Friends: ', friends);
+});
 
