@@ -4,6 +4,9 @@ a{color:#00b7ff;text-decoration:none;}
 a:hover{text-decoration:underline}
 ul{list-style:none}
 .hide{display:none}
+#notify-container .picture{float:left;margin-right:5px}
+#notify-container h1{height:30px}
+#notify-container img{width:28px;height:28px}
 input[type="text"]{margin:5px 0;padding:8px 10px;outline:none;-webkit-border-radius:5px;-moz-border-radius:5px;border-radius:5px;border:1px solid #eee;color:#a9a9a9;font-size:16px;}
 input[type="text"]:focus{-webkit-box-shadow:0 1px 1px 0 rgba(0,171,250,0.6),0 0 3px 1px rgba(0,171,250,0.3);-moz-box-shadow:0 1px 1px 0 rgba(0,171,250,0.6),0 0 3px 1px rgba(0,171,250,0.3);box-shadow:0 1px 1px 0 rgba(0,171,250,0.6),0 0 3px 1px rgba(0,171,250,0.3)}
 h1{color:#fff;font-size:30px;font-weight:bold;text-shadow:0 1px 4px rgba(0,0,0,0.68);letter-spacing:-1px;margin:0}

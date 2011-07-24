@@ -108,13 +108,18 @@ app.get('/location/:name', locationApi.show);
 app.post('/friends', friendsApi.create);
 
 
+
 // Socket
 // =======
+// var chatApi = require('./lib/chat.js')
 
 var users           = {}
   , userPool        = {}
   , userSetMarkers  = [];
 
+
+var topics    = {}
+  , topic_id  = 0;
 
 io.sockets.on('connection', function (socket) {
 
@@ -148,19 +153,22 @@ io.sockets.on('connection', function (socket) {
     socket.broadcast.emit('marker added', markerData);
   });
 
+
   // user has added a topic on a marker
   // this should end up being a room
   socket.on('new topic', function (topicData, _fn) {
     // save topic
     var topic_saved = true;
-    socket.broadcast.emit('topic created', topicData);
+    topics[topic_id++] = topicData;
+    topicData.topic_id = topic_id;
+    _fn(topic_saved, topic_id);
 
-    _fn(topic_saved);
+    socket.broadcast.emit('topic created', topicData);
   });
 
 
-  socket.on('user message', function (user, msg) {
-    socket.broadcast.emit('user message', user, msg);
+  socket.on('user message', function (chat_id, user, msg) {
+    socket.broadcast.emit('user message', chat_id, user, msg);
   });
 
 

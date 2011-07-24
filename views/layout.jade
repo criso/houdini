@@ -8,9 +8,13 @@ html
     script(src='/javascripts/lib/pubsub.min.js')
     script(src='/socket.io/socket.io.js')
     script(src='/javascripts/gmap.js')
+    script(src='/javascripts/jquery-notify/jquery.ui.widget.js')
+    script(src='/javascripts/jquery-notify/src/jquery.notify.min.js')
     script(src='/javascripts/houdini.js')
+    script(src='/javascripts/chatbox.js')
     script(src='/javascripts/client.js')
     link(rel='stylesheet', href='/stylesheets/style.css')
+    link(rel='stylesheet', href='/stylesheets/jquery-notify/ui.notify.css')
     link(rel='stylesheet', href="http://code.google.com/apis/maps/documentation/javascript/examples/default.css")
   body
     div#fb-root
@@ -24,4 +28,12 @@ html
             span#fb_login_text.fb_button_text Connect with Facebook
 
   body!=body
+  
+  div#notify-container(style="top:auto; left:0; bottom:0; margin:0 0 10px 10px")
+    div#template
+      a.ui-notify-cross.ui-notify-close(href="#")x
+      div.picture \#{picture}
+      h1 \#{title}
+      p \#{text}
+
   script(src='/javascripts/facebook.js')
