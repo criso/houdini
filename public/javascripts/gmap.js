@@ -9,11 +9,7 @@ App.Gmap = function(el, options) {
 
   this.map = new google.maps.Map(document.getElementById(el), this.mapOptions);
 
-  this.getBrowserLocation(function(location, markerContent) { 
-    // self.map.setCenter(location);
-    self.dropMarker(location, markerContent, self.icon.online);
-  }); 
-  
+  this.attachEvents();
 };
 
 
@@ -21,6 +17,8 @@ App.Gmap.prototype = {
   mapOptions: {
     minzoom: 2,
     zoom: 4,
+    mapTypeControl: false,
+
     // mapTypeId: google.maps.MapTypeId.ROADMAP,
     mapTypeId: google.maps.MapTypeId.TERRAIN,
     center: new google.maps.LatLng(37.0902400,-95.7128910)
@@ -29,19 +27,142 @@ App.Gmap.prototype = {
   icon: {
     shadow:   'images/pin_shadow.png',
     online:   'images/green_pin.png',
-    offline:  'images/orange_pin.png'
+    likeToGo: 'images/orange_pin.png',
+    user:     'images/blue_pin.png'
   },
+
+  infoWindow: new google.maps.InfoWindow(),
 
 
   // markers 
-  FBFriendsMarkers: {},
-  userMarker: {},
+  FBFriendsMarkers:     {},
+  userMarkers:          [],
+  friendsPlacesMarkers: [],
 
   // gmaps native utils
   geoCoder:  new google.maps.Geocoder(),
 
   // user initial location
   initialLocation: {},
+
+
+  message: function (from, msg) {
+
+  },
+
+  sendMessage: function ($chat_box, marker) {
+    var self = this
+      , $form = $chat_box.find('form')
+      , $messages = $chat_box.find('.messages')
+      , $msg = $form.find('#user-message')
+      , message = $msg.val()
+      , user = App.Facebook.FBUser;
+
+    var $content = $(
+      '<li class="message">' +
+        '<img  alt="Avatar for CrisO" src="'+ user.picture +'" class="avatar">' +
+        '<div class="you-say">' + message  + '</div>' +
+      '</li>');
+
+    $messages.append($content);
+
+    socket.emit('user message', user, message);
+
+    $msg.val('').focus();
+  },
+
+  submitTopic: function (form, marker) {
+    var self = this
+      , topic_name = form.topic.value
+      , topic_data = {
+          topicName: topic_name,
+          position: { Ka: form.Ka.value, La: form.La.value },
+          user: App.Facebook.FBUser
+    };
+
+    var img = App.Facebook.FBUser.picture;
+
+    var $content = $(
+      '<div class="chat-box">' +
+        '<div class="chat-header">' +
+          '<img  alt="Avatar for CrisO" src="'+ img +'" class="you-say" />' +
+          '<div class="topic-title">' + topic_name + '</div>' +
+        '</div>' +
+        '<ul class="messages"></ul>' +
+        '<div class="chat-input">' +
+          '<img  alt="Avatar for CrisO" src="'+ img +'" class="you-say">' +
+          '<form>' +
+          '<textarea name="message" id="user-message" autofocus></textarea>' +
+          '<button class="minimal button">Send</button' +
+          '</form>' +
+        '</div>' +
+      '</div>');
+    
+    $content.find('form')
+    .submit(function(ev){
+      ev.preventDefault();
+      self.sendMessage($content, marker);
+    })
+    .end();
+
+    // each topic gets saved on the DB with an id
+    // the chat-box now has id for the "room"
+    socket.emit('new topic', topic_data, function(set) {
+      if (set) {
+        self.infoWindow.setContent($content[0]);
+        self.infoWindow.open(self.map, marker);
+      }
+    });
+  },
+
+  // add events
+  attachEvents: function () {
+    var self      = this
+      , $content  = [];
+
+    // map.onclick
+    // - should add a marker on that position
+    // - should add marker to userMarkers array
+    // - all users should see this
+    google.maps.event.addListener(this.map, 'click', function(event) {
+      self.infoWindow.close();
+
+      self.addMarker(event.latLng, self.icon.likeToGo, function(marker){
+        self.userMarkers.push(marker);
+
+        $content = $(
+          '<div class="topic-box">' +
+            '<form class="topic-form">' +
+              '<p>What would you like to do here?</p>' +
+              '<input type="text" name=topic autofocus />' +
+              '<input type="hidden" name="Ka" value="'+ event.latLng.Ka  +'" />' +
+              '<input type="hidden" name="La" value="'+  event.latLng.La +'" />' +
+            '</form>' +
+          '</div>')
+        .data({ marker: marker })
+        .find('form')
+        .submit(function(ev) {
+          ev.preventDefault();
+          self.submitTopic(this, marker);
+        })
+        .end();
+
+        self.infoWindow.setContent($content[0]);
+        self.infoWindow.open(self.map, marker);
+
+        // marker on click
+        google.maps.event.addListener(marker, 'click', function() {
+            self.infoWindow.open(self.map, marker);
+        });
+
+        socket.emit('add marker', {
+          user: App.Facebook.FBUser,
+          position: event.latLng
+        });
+
+      });
+    });
+  },
 
   // get user's location from browser  
   getBrowserLocation: function (_fn) {
@@ -96,11 +217,11 @@ App.Gmap.prototype = {
   // drop a marker on the map
   // `position` => google.maps.LatLng
   // `markerContent` => string
-  dropMarker: function (position, markerContent, iconImg) {
+  dropMarker: function (user, markerContent, iconImg, location) {
     var self = this;
 
     var marker = new google.maps.Marker({
-      position:   position,
+      position:   new google.maps.LatLng(user.position.Ka, user.position.La),
       map:        this.map,
       animation:  google.maps.Animation.DROP,
       icon: new google.maps.MarkerImage(
@@ -124,10 +245,43 @@ App.Gmap.prototype = {
       infowindow.open(self.map, marker);
     });
 
+    this.FBFriendsMarkers[location] = {
+      marker: marker,
+      friends: [user]
+    };
   },
 
-  // =========== facebook friends ============
 
+  // - given a position it adds a marker
+  // for the current user as a "picked destination"
+  // - adds the marker to `userMarkers` array
+  addMarker: function (position, iconImg, _fn) {
+    // FB.user is the user that added the location
+    var marker = new google.maps.Marker({
+      position:   new google.maps.LatLng(position.Ka, position.La),
+      map:        this.map,
+      animation:  google.maps.Animation.DROP,
+      icon: new google.maps.MarkerImage(
+        iconImg,
+        new google.maps.Size(8, 18),
+        new google.maps.Point(0, 0),
+        new google.maps.Point(0, 18)
+      ),
+      shadow: new google.maps.MarkerImage(
+        this.icon.shadow,
+        new google.maps.Size(17, 12),
+        new google.maps.Point(0, 0),
+        new google.maps.Point(0, 12)
+      )
+    });
+
+    _fn(marker);
+  },
+
+
+  /**
+   * Add facebook friends to map
+   */
   addFBFriendsToMap: function (FBfriends) {
 
     var self        = this
@@ -143,61 +297,43 @@ App.Gmap.prototype = {
           // we don't have that location stored  
           if (resp.error){
             // find a location 
-            self.getGeo(resp.location, friend, timer++, function(result) {
+            self.getGeo(resp.location, friend, timer++, function(result, friend) {
               if (!result.error) {
 
                 var grouped_location = result.grouped_location;
 
                 if (self.getFriendsMarkerByGroupLoc(grouped_location)) {
-                  self.FBFriendsMarkers[grouped_location].friends.push(friend); 
-
-                  // console.log('Appending to friends.markers[GEO]: ', friend);
+                  self.FBFriendsMarkers[grouped_location].friends.push(friend);
                 } else {
-                  // console.log('setting marker[GEO] ' + grouped_location);
 
-                  self.dropMarker(result.position, grouped_location, icon.offline);
+                  self.dropMarker(friend, 'marker content', icon.offline, grouped_location);
 
-                  self.addToFriendsMarkers(grouped_location, {
-                    position: result.position,
-                    friends: [friend]
-                  });
                 }
               } 
             });
 
           } else {
-            // we have a location stored  
+            // we have a location stored
             var location    = resp.success
               , grouped_location = location.grouped_location;
 
-            // console.log('We have location ', location);
 
             if (self.getFriendsMarkerByGroupLoc(grouped_location)) {
               self.FBFriendsMarkers[grouped_location].friends.push(friend); 
-              // console.log('Appending to friends.markers[MEM]: ', friend);
             } else {
-              // console.log('setting marker[MEM]' + grouped_location);
 
               // have to convert the coordinates into a google object
               location.position = new google.maps.LatLng(location.position.Ka,
                                                     location.position.La);
 
-              self.dropMarker(location.position, grouped_location, icon.offline);
+              self.dropMarker(friend, 'marker content', icon.offline, grouped_location);
 
-              self.addToFriendsMarkers(grouped_location, {
-                position: location.position,
-                friends: [friend]
-              });
             }
 
           }
         });
       }
     });
-  },
-
-  addToFriendsMarkers: function (grouped_location, settings) {
-    this.FBFriendsMarkers[grouped_location] = settings;
   },
 
   getFriendsMarkerByGroupLoc: function (grouped_location) {
@@ -215,8 +351,7 @@ App.Gmap.prototype = {
       , utils = this.utils;
 
     setTimeout(function() {
-      self.geoCoder.geocode( {address: fbLocation}, 
-        function(results, status) {
+      self.geoCoder.geocode({address: fbLocation}, function(results, status) {
 
         if (status === google.maps.GeocoderStatus.OK) {
 
@@ -231,10 +366,16 @@ App.Gmap.prototype = {
             position:           position 
           };
 
-          _fn(location); // execute callback
+          friend.position = {
+            Ka: position.Ka,
+            La: position.La
+          };
+
+          _fn(location, friend); // execute callback
 
           // cache the location for future use
           // position can't be sent as a google object
+          // TODO - retest this - this looks silly
           var post_location = _.extend(location, {
               position: {
                 Ka: location.position.Ka,
@@ -244,7 +385,7 @@ App.Gmap.prototype = {
           self.saveLocation(post_location);
 
         } else {
-          console.log('Failed to find location: ', status); 
+          console.error('Failed to find location: ', status); 
           _fn({error: status});
         }
 

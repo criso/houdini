@@ -6,15 +6,16 @@ var express       = require('express')
   , io            = require('socket.io').listen(app)
   , everyauth     = require('everyauth')
   , mongoose      = require('mongoose')
+  , stylus        = require('stylus')
+  , nib           = require('nib')
+  , _             = require('underscore')
+  , utils         = require('util')
   , Promise       = everyauth.Promise;
 
-var _ = require('underscore');
 
 var oauthconf     = require('./conf')
   , userUtils     = require('./lib/user_helpers.js');
 
-
-everyauth.debug = true;
 
 // User authentication
 // ===================
@@ -46,10 +47,31 @@ app.configure(function(){
   app.use(express.methodOverride());
   app.use(express.cookieParser());
   app.use(express.session({ secret: 'houdinified' }));
+  app.use(stylus.middleware({ 
+    src: __dirname + '/public',
+    dest: __dirname + '/public',
+    compile: function(str, path) {
+      return stylus(str)
+        .set('compress', true)
+        .use(nib());
+    }
+  }));
+
   app.use(everyauth.middleware());
-  app.use(express.compiler({ src: __dirname + '/public', enable: ['sass'] }));
+
   app.use(app.router);
   app.use(express.static(__dirname + '/public'));
+
+// function compile(str, path) {
+//       return stylus(str)
+//         .import(__dirname + '/css/mixins/blueprint')
+//         .import(__dirname + '/css/mixins/css3')
+//         .set('filename', path)
+//         .set('warn', true)
+//         .set('compress', true);
+//     }
+
+
 });
 
 app.configure('development', function(){
@@ -74,32 +96,24 @@ mongoose.connect(app.set('db-uri'));
 
 // Routes
 // =======
-app.get('/', function(req, res){
-  res.render('index', { title: 'Express' });
-});
-
 var locationApi = require('./controllers/location.js')
   , friendsApi  = require('./controllers/friends.js');
+
+app.get('/', function(req, res){
+  res.render('index', { title: 'Houdini' });
+});
 
 app.get('/location/:name', locationApi.show);
 
 app.post('/friends', friendsApi.create);
 
 
-
-
 // Socket
 // =======
-var utils = require('util');
 
-var users     = {}
-  , userPool  = {};
-
-// var userPool = [{
-//   name: username,
-//   socketID: socket.id,
-//   facebookID: id
-// }];
+var users           = {}
+  , userPool        = {}
+  , userSetMarkers  = [];
 
 
 io.sockets.on('connection', function (socket) {
@@ -111,7 +125,7 @@ io.sockets.on('connection', function (socket) {
     var facebook_id = userData.id;
 
     userPool[facebook_id] = {
-      name:       userData.first_name + ' ' + userData.last_name,
+      name:       userData.name,
       socketID:   socket.id,
       facebookID: facebook_id,
       position: {
@@ -121,16 +135,32 @@ io.sockets.on('connection', function (socket) {
     };
 
     // everybody but the client
-    socket.broadcast.emit('announcement', userData.first_name + ' connected');
+    socket.broadcast.emit('announcement', userData.name +' connected');
 
-    // send a broadcast to *everyone* 
+    // send a broadcast to *everyone*
     // announcing which users are online
     io.sockets.emit('users online', userPool);
+  });
 
-    // usernames[username] = socket.username = username;
-    // socket.broadcast.emit('announcement', username + ' connected');
-    // io.sockets.emit('usernames', usernames);
-    // if there are friends here - get put in the same room ?
+  // socket has added a marker
+  socket.on('add marker', function (markerData) {
+    userSetMarkers.push(markerData);
+    socket.broadcast.emit('marker added', markerData);
+  });
+
+  // user has added a topic on a marker
+  // this should end up being a room
+  socket.on('new topic', function (topicData, _fn) {
+    // save topic
+    var topic_saved = true;
+    socket.broadcast.emit('topic created', topicData);
+
+    _fn(topic_saved);
+  });
+
+
+  socket.on('user message', function (user, msg) {
+    socket.broadcast.emit('user message', user, msg);
   });
 
 
@@ -150,29 +180,15 @@ io.sockets.on('connection', function (socket) {
   socket.on('disconnect', function () {
     _.each(userPool, function (user) {
       if (user.socketID === socket.id) {
-        console.log('==== removing user');
         io.sockets.emit('user disconnected', user);
         user = null;
       }
     });
   });
 
-
-// io.sockets.on('connection', function (socket) {
-//   socket.join('justin bieber fans');
-//   socket.broadcast.to('justin bieber fans').emit('new fan');
-//   io.sockets.in('rammstein fans').emit('new non-fan');
-// });
-
-
-  // sockets in the same room
-  // one room for each socket
-  
-  // socket.join('socket.id')
-  // socket.broadcast.to(socket.id).emit('connected');
 });
 
-
+ 
 
 everyauth.helpExpress(app);
 

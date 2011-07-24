@@ -54,14 +54,14 @@ App.Facebook = ({
 
   setFBUser: function (_fn) {
     var self = this;
-    FB.api('/me', function(resp) {
+    FB.api('/me?fields=id,name,picture,location', function(resp) {
       if (resp) {
         self.FBUser = resp;
 
-		$.publish('/FB/user/loaded', [self.FBUser]);
+        $.publish('/FB/user/loaded', [self.FBUser]);
 
-		// if callback was provided - returns FBUser  
-		if (typeof _fn === 'function')  _fn(self.FBUser); 
+        // if callback was provided - returns FBUser  
+        if (typeof _fn === 'function')  _fn(self.FBUser); 
       }
     });
   },
@@ -73,7 +73,7 @@ App.Facebook = ({
       if (resp && resp.data){
         self.FBFriends = resp.data;
 
-		$.publish('/FB/Friends/loaded');
+        $.publish('/FB/Friends/loaded');
 
         if (typeof _fn === 'function')  _fn(self.FBFriends);
 
@@ -81,7 +81,6 @@ App.Facebook = ({
       }
     });
   }
-
 
 }).loadFB();
 
