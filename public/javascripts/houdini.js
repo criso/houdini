@@ -57,8 +57,15 @@ $.subscribe('/FB/user/loaded', function (user) {
 }());
 
 
+// window load for google maps
 $(window).load(function () {
-	// initialize google maps
-	// ======================
-	App.world = new App.Gmap('map_canvas');	
+  // initialize google maps
+  // ======================
+  App.world = new App.Gmap('map_canvas');	
+});
+
+// dom ready
+$(function() {
+  App.note = $('#notify-container').notify();
+
 });

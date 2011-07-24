@@ -3,7 +3,6 @@ var App = window.App || {};
 App.Gmap = function(el, options) {
 
   var self = this;
-
   this.el = el;
   _.extend(this, options);
 
@@ -33,11 +32,15 @@ App.Gmap.prototype = {
 
   infoWindow: new google.maps.InfoWindow(),
 
+  // client has set a topic
+  // which became a chat room
+  // using a `topic` as key
+  // stores a makre and infowindow
+  infoWindows: {},
 
   // markers 
   FBFriendsMarkers:     {},
   userMarkers:          [],
-  friendsPlacesMarkers: [],
 
   // gmaps native utils
   geoCoder:  new google.maps.Geocoder(),
@@ -46,13 +49,10 @@ App.Gmap.prototype = {
   initialLocation: {},
 
 
-  message: function (from, msg) {
-
-  },
-
   sendMessage: function ($chat_box, marker) {
     var self = this
       , $form = $chat_box.find('form')
+      , chat_id = $chat_box[0].id
       , $messages = $chat_box.find('.messages')
       , $msg = $form.find('#user-message')
       , message = $msg.val()
@@ -66,53 +66,63 @@ App.Gmap.prototype = {
 
     $messages.append($content);
 
-    socket.emit('user message', user, message);
+    socket.emit('user message', chat_id,  user, message);
 
     $msg.val('').focus();
   },
 
-  submitTopic: function (form, marker) {
+  /**
+   *
+   */
+  submitTopic: function (form, marker, topic_info_window) {
     var self = this
-      , topic_name = form.topic.value
+      , topic_title = form.topic.value
       , topic_data = {
-          topicName: topic_name,
-          position: { Ka: form.Ka.value, La: form.La.value },
-          user: App.Facebook.FBUser
+            title:    topic_title
+          , position: { Ka: form.Ka.value, La: form.La.value }
+          , user:     App.Facebook.FBUser
     };
 
-    var img = App.Facebook.FBUser.picture;
-
-    var $content = $(
-      '<div class="chat-box">' +
-        '<div class="chat-header">' +
-          '<img  alt="Avatar for CrisO" src="'+ img +'" class="you-say" />' +
-          '<div class="topic-title">' + topic_name + '</div>' +
-        '</div>' +
-        '<ul class="messages"></ul>' +
-        '<div class="chat-input">' +
-          '<img  alt="Avatar for CrisO" src="'+ img +'" class="you-say">' +
-          '<form>' +
-          '<textarea name="message" id="user-message" autofocus></textarea>' +
-          '<button class="minimal button">Send</button' +
-          '</form>' +
-        '</div>' +
-      '</div>');
-    
-    $content.find('form')
-    .submit(function(ev){
-      ev.preventDefault();
-      self.sendMessage($content, marker);
-    })
-    .end();
+    // close the "set topic" info window 
+    topic_info_window.close();
+    topic_info_window = null;
 
     // each topic gets saved on the DB with an id
     // the chat-box now has id for the "room"
-    socket.emit('new topic', topic_data, function(set) {
+    socket.emit('new topic', topic_data, function(set, topic_id) {
       if (set) {
-        self.infoWindow.setContent($content[0]);
-        self.infoWindow.open(self.map, marker);
+        var $content    = new App.ChatBox(topic_id, topic_data).el
+          , info_window = new google.maps.InfoWindow();
+
+        // marker on click
+        google.maps.event.addListener(marker, 'click', function() {
+          info_window.open(self.map, marker);
+        });
+
+        $content.find('form')
+        .submit(function(ev){
+          ev.preventDefault();
+          self.sendMessage($content, marker);
+        })
+        .end();
+
+        self.infoWindows[topic_id] = {
+          infoWindow: info_window,
+          marker: marker
+        };
+
+        info_window.setContent($content[0]);
+        info_window.open(self.map, marker);
       }
     });
+  },
+
+  // animate marker 
+  bounceMarker: function (marker, time) {
+    marker.setAnimation(google.maps.Animation.BOUNCE);
+    setTimeout(function() {
+      marker.setAnimation(null);
+    }, time);
   },
 
   // add events
@@ -125,10 +135,8 @@ App.Gmap.prototype = {
     // - should add marker to userMarkers array
     // - all users should see this
     google.maps.event.addListener(this.map, 'click', function(event) {
-      self.infoWindow.close();
-
       self.addMarker(event.latLng, self.icon.likeToGo, function(marker){
-        self.userMarkers.push(marker);
+        var topic_info_window = new google.maps.InfoWindow();
 
         $content = $(
           '<div class="topic-box">' +
@@ -139,26 +147,30 @@ App.Gmap.prototype = {
               '<input type="hidden" name="La" value="'+  event.latLng.La +'" />' +
             '</form>' +
           '</div>')
-        .data({ marker: marker })
         .find('form')
         .submit(function(ev) {
           ev.preventDefault();
-          self.submitTopic(this, marker);
+          self.submitTopic(this, marker, topic_info_window);
         })
         .end();
 
-        self.infoWindow.setContent($content[0]);
-        self.infoWindow.open(self.map, marker);
+        topic_info_window.setContent($content[0]);
+        topic_info_window.open(self.map, marker);
 
-        // marker on click
-        google.maps.event.addListener(marker, 'click', function() {
-            self.infoWindow.open(self.map, marker);
+        // on closeclick of the topic_info
+        // we'll remove the marker, since the user hasn't
+        // set a topic
+        google.maps.event.addListener(topic_info_window, 'closeclick', function() {
+          marker.setMap(null);
         });
 
-        socket.emit('add marker', {
-          user: App.Facebook.FBUser,
-          position: event.latLng
-        });
+        self.userMarkers.push(marker);
+
+        //
+        // socket.emit('add marker', {
+        //   user: App.Facebook.FBUser,
+        //   position: event.latLng
+        // });
 
       });
     });
@@ -423,4 +435,6 @@ App.Gmap.prototype = {
     }
   }
 };
+
+
 
