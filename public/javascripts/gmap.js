@@ -8,7 +8,10 @@ App.Gmap = function(el, options) {
 
   this.map = new google.maps.Map(document.getElementById(el), this.mapOptions);
 
-  this.attachEvents();
+  setTimeout(function() {
+	self.attachEvents();
+  
+  },2000);
 };
 
 
@@ -99,12 +102,14 @@ App.Gmap.prototype = {
           info_window.open(self.map, marker);
         });
 
-        $content.find('form')
-        .submit(function(ev){
-          ev.preventDefault();
-          self.sendMessage($content, marker);
-        })
-        .end();
+		$content.data({marker: marker});
+
+        // $content.find('form')
+        // .submit(function(ev){
+        //   ev.preventDefault();
+        //   self.sendMessage($content, marker);
+        // })
+        // .end();
 
         self.infoWindows[topic_id] = {
           infoWindow: info_window,
@@ -143,8 +148,8 @@ App.Gmap.prototype = {
             '<form class="topic-form">' +
               '<p>What would you like to do here?</p>' +
               '<input type="text" name=topic autofocus />' +
-              '<input type="hidden" name="Ka" value="'+ event.latLng.Ka  +'" />' +
-              '<input type="hidden" name="La" value="'+  event.latLng.La +'" />' +
+              '<input type="hidden" name="Ka" value="'+ event.latLng.lat()  +'" />' +
+              '<input type="hidden" name="La" value="'+  event.latLng.lng() +'" />' +
             '</form>' +
           '</div>')
         .find('form')
@@ -174,6 +179,14 @@ App.Gmap.prototype = {
 
       });
     });
+
+
+	$('.chat-box form').live('submit', function(ev) {
+		ev.preventDefault();
+		var $form = $(this).parents('.chat-box').first();
+		self.sendMessage($form, $form.data('marker'));
+	});
+
   },
 
   // get user's location from browser  
@@ -268,9 +281,19 @@ App.Gmap.prototype = {
   // for the current user as a "picked destination"
   // - adds the marker to `userMarkers` array
   addMarker: function (position, iconImg, _fn) {
+	var lat, lng;
+	if (typeof position.lat === 'function') {
+		lat = position.lat();
+		lng = position.lng();
+	} else {
+		lat = position.Ka;
+		lng = position.La;
+	}
+
+
     // FB.user is the user that added the location
     var marker = new google.maps.Marker({
-      position:   new google.maps.LatLng(position.Ka, position.La),
+      position:   new google.maps.LatLng(lat, lng),
       map:        this.map,
       animation:  google.maps.Animation.DROP,
       icon: new google.maps.MarkerImage(
@@ -335,8 +358,8 @@ App.Gmap.prototype = {
             } else {
 
               // have to convert the coordinates into a google object
-              location.position = new google.maps.LatLng(location.position.Ka,
-                                                    location.position.La);
+              location.position = new google.maps.LatLng(location.position.lat(),
+                                                    location.position.lng());
 
               self.dropMarker(friend, 'marker content', self.icon.offline, grouped_location);
 

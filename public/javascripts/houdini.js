@@ -37,8 +37,8 @@ $.subscribe('/FB/user/loaded', function (user) {
           // add the user's location to the user object
           // and drop a marker there
           user.position = {
-            Ka: location.Ka,
-            La: location.La
+            Ka: location.lat(),
+            La: location.lng()
           };
 
           world.dropMarker(user, markerContent, world.icon.user, 'user');
