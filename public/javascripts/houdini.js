@@ -7,6 +7,8 @@ $.subscribe('/FB/Friends/loaded', function() {
   (function retry() {
     setTimeout(function() {
       if (App.world) {
+		// TODO - is broken right now
+		// should addFBFriendsToMap call dropmarker or addMarker?
         // App.world.addFBFriendsToMap(App.Facebook.FBFriends);
       } else {
         retry(); 

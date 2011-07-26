@@ -318,7 +318,7 @@ App.Gmap.prototype = {
                   self.FBFriendsMarkers[grouped_location].friends.push(friend);
                 } else {
 
-                  self.dropMarker(friend, 'marker content', icon.offline, grouped_location);
+                  self.dropMarker(friend, 'marker content', self.icon.user, grouped_location);
 
                 }
               } 
@@ -338,7 +338,7 @@ App.Gmap.prototype = {
               location.position = new google.maps.LatLng(location.position.Ka,
                                                     location.position.La);
 
-              self.dropMarker(friend, 'marker content', icon.offline, grouped_location);
+              self.dropMarker(friend, 'marker content', self.icon.offline, grouped_location);
 
             }
 
