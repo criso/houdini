@@ -53,7 +53,7 @@ App.Gmap.prototype = {
 
   // This function is a great place to use 
   // $.deferrend TODO
-  addFriendsToMap: function (friends) {
+  addFriendsToMapBAK: function (friends) {
     var self  = this
       , timer = 0
       , cached_timer = 0
@@ -102,6 +102,72 @@ App.Gmap.prototype = {
     });
   },
 
+  myMarkers: [],
+
+  addFriendsToMap: function (friends) {
+    var self  = this
+      , timer = 0
+      , cached_timer = 0
+      , location_cluster = {}
+      , friend_count = 0;
+
+    _.each(friends, function (friend) {
+      if (friend.location && friend.location.name) {
+
+        // try to find a cached location object
+        // if that doesn't work - load from google
+        self.findCachedLocationObj(friend.location.name, function(location) {
+          if (location) {
+            location_cluster  = location.location_cluster;
+            friend.position   = location.position;
+
+            var fbMarkers = self.FBFriendsMarkers;
+
+            if (fbMarkers[location_cluster]) {
+              fbMarkers[location_cluster].friends.push(friend); 
+            } else {
+
+              fbMarkers[location_cluster] = {
+                friends: [friend],
+                position: friend.position
+              };
+
+              self.addMarker(location.position, self.icon.user, function (marker) {
+                fbMarkers[location_cluster].marker = marker;
+
+                console.log('Test:: marker.position for <' + location_cluster 
+                            + '> should be the same as friend.position',
+                            fbMarkers[location_cluster].position.lat === marker.getPosition().lat());
+
+                marker.setTitle(fbMarkers[location_cluster].friends.length);
+
+
+              });
+
+            }
+
+
+            // if (self.getFriendsMarkerByGroupLoc(location_cluster)) {
+            //   self.FBFriendsMarkers[location_cluster].friends.push(friend); 
+            // } else {
+            //   // self.dropMarker(friend, 'marker content', self.icon.user, location_cluster);
+
+            //   self.addMarker(location.position, self.icon.user, function (marker) {
+            //     // marker  => criso 
+            //     myMarkers.push(
+            //       marker: marker,
+            //       friends: []
+            //       
+            //     );
+            //   });
+
+            // }
+          }
+        });
+      }
+    });
+  },
+
   // drop markers with a delay in between them
   delayedDrop: function (friend, marker_content, location_cluster, timer) {
     var self = this;
@@ -111,11 +177,39 @@ App.Gmap.prototype = {
   },
 
 
-
   // - given a position it adds a marker
   // for the current user as a "picked destination"
   // - adds the marker to `userMarkers` array
   addMarker: function (position, iconImg, _fn) {
+    if (typeof position.lat !== 'function') {
+      position = new google.maps.LatLng(position.lat, position.lng);
+    }
+
+    var marker = new google.maps.Marker({
+      position:   position,
+      map:        this.map,
+      animation:  google.maps.Animation.DROP,
+      icon: new google.maps.MarkerImage(
+        iconImg,
+        new google.maps.Size(8, 18),
+        new google.maps.Point(0, 0),
+        new google.maps.Point(0, 18)
+      ),
+      shadow: new google.maps.MarkerImage(
+        this.icon.shadow,
+        new google.maps.Size(17, 12),
+        new google.maps.Point(0, 0),
+        new google.maps.Point(0, 12)
+      )
+    });
+
+    _fn(marker);
+  },
+
+  // - given a position it adds a marker
+  // for the current user as a "picked destination"
+  // - adds the marker to `userMarkers` array
+  addMarkerBAK: function (position, iconImg, _fn) {
     // we have to do this since we can't cache
     // the location as google objects
     var lat, lng;
