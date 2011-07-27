@@ -4,11 +4,11 @@ var mongoose  = require('mongoose')
 var LocationSchema = new Schema({
   formatted_address: String,
   position: {
-    Ka: Number,
-    La: Number
+    lat: Number,
+    lon: Number
   },
-  parsed_location: String,
-  grouped_location: String
+  parsed_location:  String,
+  location_cluster: String
 });
 
 module.exports = mongoose.model('Location', LocationSchema);

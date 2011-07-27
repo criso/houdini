@@ -134,8 +134,8 @@ io.sockets.on('connection', function (socket) {
       socketID:   socket.id,
       facebookID: facebook_id,
       position: {
-        Ka: userData.position.Ka,
-        La: userData.position.La
+        lat: userData.position.lat,
+        lng: userData.position.lng
       }
     };
 

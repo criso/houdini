@@ -51,83 +51,103 @@ App.Gmap.prototype = {
   // user initial location
   initialLocation: {},
 
+  // This function is a great place to use 
+  // $.deferrend TODO
+  addFriendsToMap: function (friends) {
+    var self  = this
+      , timer = 0
+      , cached_timer = 0
+      , location_cluster = {};
 
-  sendMessage: function ($chat_box, marker) {
-    var self = this
-      , $form = $chat_box.find('form')
-      , chat_id = $chat_box[0].id
-      , $messages = $chat_box.find('.messages')
-      , $msg = $form.find('#user-message')
-      , message = $msg.val()
-      , user = App.Facebook.FBUser;
+    _.each(friends, function (friend) {
+      if (friend.location && friend.location.name) {
 
-    var $content = $(
-      '<li class="message">' +
-        '<img  alt="Avatar for CrisO" src="'+ user.picture +'" class="avatar">' +
-        '<div class="you-say">' + message  + '</div>' +
-      '</li>');
+        // try to find a cached location object
+        // if that doesn't work - load from google
+        self.findCachedLocationObj(friend.location.name, function(location) {
+          if (location) {
+            location_cluster = location.location_cluster;
 
-    $messages.append($content);
+            // attach coordinates to friend object
+            friend.position = location.position;
 
-    socket.emit('user message', chat_id,  user, message);
+            // if (self.getFriendsMarkerByGroupLoc(location_cluster)) {
+            //   self.FBFriendsMarkers[location_cluster].friends.push(friend); 
+            // } else {
+            //   self.delayedDrop(friend, 'marker content', location_cluster, cached_timer++);
+            // }
+            if (self.getFriendsMarkerByGroupLoc(location_cluster)) {
+              self.FBFriendsMarkers[location_cluster].friends.push(friend); 
+            } else {
+              self.delayedDrop(friend, 'marker content', location_cluster, cached_timer++);
+            }
 
-    $msg.val('').focus();
-  },
+          } else {
 
-  /**
-   *
-   */
-  submitTopic: function (form, marker, topic_info_window) {
-    var self = this
-      , topic_title = form.topic.value
-      , topic_data = {
-            title:    topic_title
-          , position: { Ka: form.Ka.value, La: form.La.value }
-          , user:     App.Facebook.FBUser
-    };
+            self.getGeo(friend, timer++, function(err) {
+              if (!err) {
+                var cluster = friend.location_cluster;
 
-    // close the "set topic" info window 
-    topic_info_window.close();
-    topic_info_window = null;
-
-    // each topic gets saved on the DB with an id
-    // the chat-box now has id for the "room"
-    socket.emit('new topic', topic_data, function(set, topic_id) {
-      if (set) {
-        var $content    = new App.ChatBox(topic_id, topic_data).el
-          , info_window = new google.maps.InfoWindow();
-
-        // marker on click
-        google.maps.event.addListener(marker, 'click', function() {
-          info_window.open(self.map, marker);
+                if (self.getFriendsMarkerByGroupLoc(cluster)) {
+                  timer--;
+                  self.FBFriendsMarkers[cluster].friends.push(friend);
+                } else {
+                  self.dropMarker(friend, 'marker content', self.icon.user, cluster);
+                }
+              }
+            });
+          }
         });
-
-		$content.data({marker: marker});
-
-        // $content.find('form')
-        // .submit(function(ev){
-        //   ev.preventDefault();
-        //   self.sendMessage($content, marker);
-        // })
-        // .end();
-
-        self.infoWindows[topic_id] = {
-          infoWindow: info_window,
-          marker: marker
-        };
-
-        info_window.setContent($content[0]);
-        info_window.open(self.map, marker);
       }
     });
   },
 
-  // animate marker 
-  bounceMarker: function (marker, time) {
-    marker.setAnimation(google.maps.Animation.BOUNCE);
+  // drop markers with a delay in between them
+  delayedDrop: function (friend, marker_content, location_cluster, timer) {
+    var self = this;
     setTimeout(function() {
-      marker.setAnimation(null);
-    }, time);
+      self.dropMarker(friend, 'marker content', self.icon.user, location_cluster);
+    }, timer * 500);
+  },
+
+
+
+  // - given a position it adds a marker
+  // for the current user as a "picked destination"
+  // - adds the marker to `userMarkers` array
+  addMarker: function (position, iconImg, _fn) {
+    // we have to do this since we can't cache
+    // the location as google objects
+    var lat, lng;
+    if (typeof position.lat === 'function') {
+      lat = position.lat();
+      lng = position.lng();
+    } else {
+      lat = position.lat;
+      lng = position.lng;
+    }
+
+
+    // FB.user is the user that added the location
+    var marker = new google.maps.Marker({
+      position:   new google.maps.LatLng(lat, lng),
+      map:        this.map,
+      animation:  google.maps.Animation.DROP,
+      icon: new google.maps.MarkerImage(
+        iconImg,
+        new google.maps.Size(8, 18),
+        new google.maps.Point(0, 0),
+        new google.maps.Point(0, 18)
+      ),
+      shadow: new google.maps.MarkerImage(
+        this.icon.shadow,
+        new google.maps.Size(17, 12),
+        new google.maps.Point(0, 0),
+        new google.maps.Point(0, 12)
+      )
+    });
+
+    _fn(marker);
   },
 
   // add events
@@ -148,8 +168,8 @@ App.Gmap.prototype = {
             '<form class="topic-form">' +
               '<p>What would you like to do here?</p>' +
               '<input type="text" name=topic autofocus />' +
-              '<input type="hidden" name="Ka" value="'+ event.latLng.lat()  +'" />' +
-              '<input type="hidden" name="La" value="'+  event.latLng.lng() +'" />' +
+              '<input type="hidden" name="lat" value="'+ event.latLng.lat()  +'" />' +
+              '<input type="hidden" name="lng" value="'+  event.latLng.lng() +'" />' +
             '</form>' +
           '</div>')
         .find('form')
@@ -171,82 +191,38 @@ App.Gmap.prototype = {
 
         self.userMarkers.push(marker);
 
-        //
-        // socket.emit('add marker', {
-        //   user: App.Facebook.FBUser,
-        //   position: event.latLng
-        // });
-
       });
     });
 
-
-	$('.chat-box form').live('submit', function(ev) {
-		ev.preventDefault();
-		var $form = $(this).parents('.chat-box').first();
-		self.sendMessage($form, $form.data('marker'));
-	});
-
+    $('.chat-box form').live('submit', function(ev) {
+      ev.preventDefault();
+      var $form = $(this).parents('.chat-box').first();
+      self.sendMessage($form, $form.data('marker'));
+    });
   },
 
-  // get user's location from browser  
-  getBrowserLocation: function (_fn) {
-
-    // Testing code START
-    var test_location;
-    switch (window.location.hash) {
-      case '#userB':
-        // florida
-        test_location = {
-          Ka: 25.790654,
-          La: -80.1300455
-        };
-      break;
-
-        // california
-      case '#userC':
-        test_location = {
-          La: -118.39951940000003,
-          Ka: 33.8622366
-        };
-      break;
-
-      default:
-        test_location = null;
-      break;
-    }
-
-    if (test_location) {
-      this.initialLocation = new google.maps.LatLng(test_location.Ka, test_location.La);
-      _fn(this.initialLocation, 'This is Home');
-      console.log('setting <userB> in florida');
-      return;
-    }
-    // Testing code END
-
-    var self = this;
-    // Try W3C Geolocation (Preferred)
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(function(position) {
-        self.initialLocation = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
-        _fn(self.initialLocation, 'This is Home');
-
-      }, function() {
-        alert("Nana-naboo-boo... Your browser doesn't support geolocation. We've placed you in Siberia.");
-        self.initialLocation = new google.maps.LatLng(60, 105);
-        _fn(self.initialLocation, "We're not in Kansas anymore");
-      });
-    }
+  // animate marker 
+  bounceMarker: function (marker, time) {
+    marker.setAnimation(google.maps.Animation.BOUNCE);
+    setTimeout(function() {
+      marker.setAnimation(null);
+    }, time);
   },
 
   // drop a marker on the map
   // `position` => google.maps.LatLng
   // `markerContent` => string
   dropMarker: function (user, markerContent, iconImg, location) {
+    if (!user.position) { 
+      console.log("ERROR => location undefined for user:", user);
+      return false;
+    }
+
+
     var self = this;
 
     var marker = new google.maps.Marker({
-      position:   new google.maps.LatLng(user.position.Ka, user.position.La),
+      position:   new google.maps.LatLng(user.position.lat, user.position.lng),
       map:        this.map,
       animation:  google.maps.Animation.DROP,
       icon: new google.maps.MarkerImage(
@@ -276,188 +252,215 @@ App.Gmap.prototype = {
     };
   },
 
+  findCachedLocationObj: function (location_name, _fn) {
+    $.get('/location/' + location_name, function(resp){
 
-  // - given a position it adds a marker
-  // for the current user as a "picked destination"
-  // - adds the marker to `userMarkers` array
-  addMarker: function (position, iconImg, _fn) {
-	var lat, lng;
-	if (typeof position.lat === 'function') {
-		lat = position.lat();
-		lng = position.lng();
-	} else {
-		lat = position.Ka;
-		lng = position.La;
-	}
+      var location;
+      if (resp.error) {
+        location = false;
+      } else {
+        location = resp.success;
+      }
 
-
-    // FB.user is the user that added the location
-    var marker = new google.maps.Marker({
-      position:   new google.maps.LatLng(lat, lng),
-      map:        this.map,
-      animation:  google.maps.Animation.DROP,
-      icon: new google.maps.MarkerImage(
-        iconImg,
-        new google.maps.Size(8, 18),
-        new google.maps.Point(0, 0),
-        new google.maps.Point(0, 18)
-      ),
-      shadow: new google.maps.MarkerImage(
-        this.icon.shadow,
-        new google.maps.Size(17, 12),
-        new google.maps.Point(0, 0),
-        new google.maps.Point(0, 12)
-      )
+      return _fn(location);
     });
-
-    _fn(marker);
   },
 
+  // get user's location from browser  
+  getBrowserLocation: function (_fn) {
+
+    // Testing code START
+    // =================
+    var test_location;
+    switch (window.location.hash) {
+      case '#userB':
+        // florida
+        test_location = {
+          lat: 25.790654,
+          lng: -80.1300455
+        };
+      break;
+
+        // california
+      case '#userC':
+        test_location = {
+          lat: -118.39951940000003,
+          lng: 33.8622366
+        };
+      break;
+
+      default:
+        test_location = null;
+      break;
+    }
+
+    if (test_location) {
+      this.initialLocation = new google.maps.LatLng(test_location.lat, test_location.lng);
+      _fn(this.initialLocation, 'This is Home');
+      console.log('setting <userB> in florida');
+      return;
+    }
+    // Testing code END
+
+    var self = this;
+    // Try W3C Geolocation (Preferred)
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(function(position) {
+        self.initialLocation = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
+        _fn(self.initialLocation, 'This is Home');
+
+      }, function() {
+        alert("Nana-naboo-boo... Your browser doesn't support geolocation. We've placed you in Siberia.");
+        self.initialLocation = new google.maps.LatLng(60, 105);
+        _fn(self.initialLocation, "We're not in Kansas anymore");
+      });
+    }
+  },
 
   /**
-   * Add facebook friends to map
+   *
    */
-  addFBFriendsToMap: function (FBfriends) {
-
-    var self        = this
-      , utils       = this.utils
-      , marker      = {}
-      , infowindow  = {}
-      , timer       = 0;
-
-    _.each(FBfriends, function(friend){
-      if (friend.location) {
-        $.get('/location/' + friend.location.name, function(resp){
-
-          // we don't have that location stored  
-          if (resp.error){
-            // find a location 
-            self.getGeo(resp.location, friend, timer++, function(result, friend) {
-              if (!result.error) {
-
-                var grouped_location = result.grouped_location;
-
-                if (self.getFriendsMarkerByGroupLoc(grouped_location)) {
-                  self.FBFriendsMarkers[grouped_location].friends.push(friend);
-                } else {
-
-                  self.dropMarker(friend, 'marker content', self.icon.user, grouped_location);
-
-                }
-              } 
-            });
-
-          } else {
-            // we have a location stored
-            var location    = resp.success
-              , grouped_location = location.grouped_location;
-
-
-            if (self.getFriendsMarkerByGroupLoc(grouped_location)) {
-              self.FBFriendsMarkers[grouped_location].friends.push(friend); 
-            } else {
-
-              // have to convert the coordinates into a google object
-              location.position = new google.maps.LatLng(location.position.lat(),
-                                                    location.position.lng());
-
-              self.dropMarker(friend, 'marker content', self.icon.offline, grouped_location);
-
-            }
-
-          }
-        });
-      }
-    });
-  },
-
   getFriendsMarkerByGroupLoc: function (grouped_location) {
     return this.FBFriendsMarkers[grouped_location] || null;
+  },
+
+  /**
+   * callback returns true on err
+   */
+  getGeo: function (friend, timer, _fn) {
+    var self = this;
+
+    setTimeout(function() {
+      self.geoCoder.geocode({address: friend.location.name}, function(results, status) {
+
+        var err = false;
+
+        if (status === google.maps.GeocoderStatus.OK) {
+
+          var position = results[0].geometry.location
+            , lat = position.lat()
+            , lng = position.lng();
+
+          var location = {
+            formatted_address:  results[0].formatted_address,
+            location_cluster:   self.getParsedLocation(results[0].formatted_address),
+            fbLocation:         friend.location.name,
+            position:           {
+              lat: lat,
+              lng: lng
+            }
+          };
+
+          // alter friend object
+          friend.position         = { lat: lat, lng: lng };
+          friend.location_cluster = location.location_cluster;
+
+          // execute callback
+          self.saveLocation(location);
+        } else {
+          err = true;
+        }
+
+        _fn(err);
+
+      });
+    }, timer * 800);
+
+  },
+
+  // larger grouping of friends adresses  
+  // grouping by state/region  
+  getParsedLocation: function (addr) {
+    var match = false,
+      location  = addr,
+      country   = '';
+
+    if (match = addr.match(/\s([A-Z]{2})/)) {       
+        // Boston, MA, USA
+      location = match[1];
+    } else if (match = addr.match(/\s([\w\s]*),/)){ 
+      // Westminster, London, UK 
+      location = match[1];
+    } else if (addr.split(',').length === 2) {      
+      // Rome, Italy
+      location = addr.split(',')[0];
+    }
+
+    if (country = addr.match(/, (\w*)$/)) { country = '_' + country[1]; }
+
+    location += country;
+
+    return location.toLowerCase();
+  },
+
+  /**
+   *
+   */
+  sendMessage: function ($chat_box, marker) {
+    var self = this
+      , $form = $chat_box.find('form')
+      , chat_id = $chat_box[0].id
+      , $messages = $chat_box.find('.messages')
+      , $msg = $form.find('#user-message')
+      , message = $msg.val()
+      , user = App.Facebook.FBUser;
+
+    var $content = $(
+      '<li class="message">' +
+        '<img  alt="Avatar for CrisO" src="'+ user.picture +'" class="avatar">' +
+        '<div class="you-say">' + message  + '</div>' +
+      '</li>');
+
+    $messages.append($content);
+    socket.emit('user message', chat_id,  user, message);
+
+    $msg.val('').focus();
+  },
+
+  /**
+   *
+   */
+  submitTopic: function (form, marker, topic_info_window) {
+    var self = this
+      , topic_title = form.topic.value
+      , topic_data = {
+            title:    topic_title
+          , position: { lat: form.lat.value, lng: form.lng.value }
+          , user:     App.Facebook.FBUser
+    };
+
+    // close the "set topic" info window 
+    topic_info_window.close();
+    topic_info_window = null;
+
+    // each topic gets saved on the DB with an id
+    // the chat-box now has id for the "room"
+    socket.emit('new topic', topic_data, function(set, topic_id) {
+      if (set) {
+        var $content    = new App.ChatBox(topic_id, topic_data).el
+          , info_window = new google.maps.InfoWindow();
+
+        // marker on click
+        google.maps.event.addListener(marker, 'click', function() {
+          info_window.open(self.map, marker);
+        });
+
+        $content.data({marker: marker});
+
+        self.infoWindows[topic_id] = {
+          infoWindow: info_window,
+          marker: marker
+        };
+
+        info_window.setContent($content[0]);
+        info_window.open(self.map, marker);
+      }
+    });
   },
 
   // post was too slow
   // new school stuff going on here
   saveLocation: function (locationObj) {
     socket.emit('add location', locationObj);
-  },
-
-  getGeo: function (fbLocation, friend, timer, _fn) {
-    var self = this
-      , utils = this.utils;
-
-    setTimeout(function() {
-      self.geoCoder.geocode({address: fbLocation}, function(results, status) {
-
-        if (status === google.maps.GeocoderStatus.OK) {
-
-          var formatted_address = results[0].formatted_address
-            , position  = results[0].geometry.location
-            , grouped_location = utils.getParsedLocation(formatted_address);
-
-          var location = {
-            formatted_address:  formatted_address,
-            grouped_location:   grouped_location,
-            fbLocation:         fbLocation,
-            position:           position 
-          };
-
-          friend.position = {
-            Ka: position.Ka,
-            La: position.La
-          };
-
-          _fn(location, friend); // execute callback
-
-          // cache the location for future use
-          // position can't be sent as a google object
-          // TODO - retest this - this looks silly
-          var post_location = _.extend(location, {
-              position: {
-                Ka: location.position.Ka,
-                La: location.position.La
-              }
-          });
-          self.saveLocation(post_location);
-
-        } else {
-          console.error('Failed to find location: ', status); 
-          _fn({error: status});
-        }
-
-      });
-    }, timer * 1000);
-
-  },
-
-
-  utils: {
-    // larger grouping of friends adresses  
-    // grouping by state/region  
-    getParsedLocation: function (addr) {
-      var match = false,
-        location  = addr,
-        country   = '';
-
-      if (match = addr.match(/\s([A-Z]{2})/)) {       
-          // Boston, MA, USA
-        location = match[1];
-      } else if (match = addr.match(/\s([\w\s]*),/)){ 
-        // Westminster, London, UK 
-        location = match[1];
-      } else if (addr.split(',').length === 2) {      
-        // Rome, Italy
-        location = addr.split(',')[0];
-      }
-
-      if (country = addr.match(/, (\w*)$/)) { country = '_' + country[1]; }
-
-      location += country;
-      // console.log('PARSED: ' +  addr + ' to : ', location);
-
-      return location.toLowerCase();
-    }
   }
 };
-
-
-

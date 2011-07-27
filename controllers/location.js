@@ -5,19 +5,20 @@ exports.create = function (location) {
   new Location({
     formatted_address: location.formatted_address,
     position: {
-      Ka: location.position.Ka,
-      La: location.position.La
+      lat: location.position.lat,
+      lng: location.position.lng
     },
-    grouped_location: location.grouped_location,
+    location_cluster: location.location_cluster,
     fbLocation: location.fbLocation
   }).save(function(err) {
     if (err) {
-      console.log('Error saving : ', location.grouped_location); 
+      console.log('Error saving : ', location.location_cluster); 
     } else {
-      console.log('Saving location: ', location.grouped_location);
+      console.log('Saving location: ', location.location_cluster);
     }
   });
 };
+
 
 exports.show = function (req, res) {
   Location.findOne({ fbLocation: req.params.name }, function (err, location) {
