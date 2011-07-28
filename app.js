@@ -123,9 +123,10 @@ var topics    = {}
   , topic_id  = 0;
 
 
-io.configure(function () {
-  io.set('transports', ['xhr-polling', 'flashsocket', 'json-polling']);
-});
+// had to add this for it to work on heroku
+// io.configure(function () {
+//   io.set('transports', ['xhr-polling', 'flashsocket', 'jsonp-polling']);
+// });
 
 io.sockets.on('connection', function (socket) {
 
