@@ -124,7 +124,7 @@ var topics    = {}
 
 
 io.configure(function () {
-  io.set('transports', ['xhr-polling', 'flashsocket' 'json-polling']);
+  io.set('transports', ['xhr-polling', 'flashsocket', 'json-polling']);
 });
 
 io.sockets.on('connection', function (socket) {
