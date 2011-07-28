@@ -200,7 +200,7 @@ io.sockets.on('connection', function (socket) {
 
 everyauth.helpExpress(app);
 
-var port = process.evn.PORT || 3000;
+var port = process.env.PORT || 3000;
 app.listen(port, function() {
 	console.log("Express server listening on port %d", port);
 });
