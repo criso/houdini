@@ -49,6 +49,30 @@ app.configure(function(){
   app.use(express.methodOverride());
   app.use(express.cookieParser());
 
+  if (process.env.REDISTOGO_URL) {
+    var redisUrl = url.parse(process.env.REDISTOGO_URL)
+      , redisAuth = redisUrl.auth.split(':');
+
+    app.set('redisHost', redisUrl.hostname);
+    app.set('redisPort', redisUrl.port);
+    app.set('redisDb', redisAuth[0]);
+    app.set('redisPass', redisAuth[1]);
+
+    app.use(express.session({
+      secret: 'houdinified ville',
+      store: new RedisStore({
+        host: app.set('redisHost'),
+        port: app.set('redisPort'),
+        db: app.set('redisDb'),
+        pass: app.set('redisPass')
+      })
+    }));
+    
+  } else {
+    app.use(express.session({ secret: 'houdinified ville'}));
+  }
+
+
   app.use(stylus.middleware({ 
     src: __dirname + '/public',
     dest: __dirname + '/public',
@@ -62,14 +86,12 @@ app.configure(function(){
   app.use(everyauth.middleware());
   app.use(app.router);
   app.use(express.static(__dirname + '/public'));
-
 });
 
 // Development
 // ===========
 app.configure('development', function(){
   app.set('db-uri', 'mongodb://localhost/houdini-dev');
-  app.use(express.session({ secret: 'houdinified ville'}));
   app.use(express.errorHandler({ dumpExceptions: true, showStack: true }));
 });
 
@@ -82,23 +104,6 @@ app.configure('test', function() {
 // Production
 // ==========
 app.configure('production', function(){
-  var redisUrl = url.parse(process.env.REDISTOGO_URL),
-  redisAuth = redisUrl.auth.split(':');
-
-  app.set('redisHost', redisUrl.hostname);
-  app.set('redisPort', redisUrl.port);
-  app.set('redisDb', redisAuth[0]);
-  app.set('redisPass', redisAuth[1]);
-  app.use(express.session({
-    secret: 'houdinified ville',
-    store: new RedisStore({
-      host: app.set('redisHost'),
-      port: app.set('redisPort'),
-      db: app.set('redisDb'),
-      pass: app.set('redisPass')
-    })
-  }));
-
   app.set('db-uri', 'mongodb://heroku:password@staff.mongohq.com:10007/app649905');
   app.use(express.errorHandler()); 
 });
