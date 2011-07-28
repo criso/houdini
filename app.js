@@ -6,6 +6,8 @@ var express       = require('express')
   , io            = require('socket.io').listen(app)
   , everyauth     = require('everyauth')
   , mongoose      = require('mongoose')
+  , url           = require('url')	
+  , RedisStore    = require('connect-redis')(express)
   , stylus        = require('stylus')
   , nib           = require('nib')
   , _             = require('underscore')
@@ -46,7 +48,7 @@ app.configure(function(){
   app.use(express.bodyParser());
   app.use(express.methodOverride());
   app.use(express.cookieParser());
-  app.use(express.session({ secret: 'houdinified' }));
+
   app.use(stylus.middleware({ 
     src: __dirname + '/public',
     dest: __dirname + '/public',
@@ -58,34 +60,46 @@ app.configure(function(){
   }));
 
   app.use(everyauth.middleware());
-
   app.use(app.router);
   app.use(express.static(__dirname + '/public'));
 
-// function compile(str, path) {
-//       return stylus(str)
-//         .import(__dirname + '/css/mixins/blueprint')
-//         .import(__dirname + '/css/mixins/css3')
-//         .set('filename', path)
-//         .set('warn', true)
-//         .set('compress', true);
-//     }
-
-
 });
 
+// Development
+// ===========
 app.configure('development', function(){
   app.set('db-uri', 'mongodb://localhost/houdini-dev');
+  app.use(express.session({ secret: 'houdinified ville'}));
   app.use(express.errorHandler({ dumpExceptions: true, showStack: true }));
 });
 
+// Test
+//=======
 app.configure('test', function() {
   app.set('db-uri', 'mongodb://localhost/houdini-test');
 });
 
+// Production
+// ==========
 app.configure('production', function(){
-  app.set('db-uri', 'mongodb://heroku:password@staff.mongohq.com:10007/app649905');
+  var redisUrl = url.parse(process.env.REDISTOGO_URL),
+  redisAuth = redisUrl.auth.split(':');
 
+  app.set('redisHost', redisUrl.hostname);
+  app.set('redisPort', redisUrl.port);
+  app.set('redisDb', redisAuth[0]);
+  app.set('redisPass', redisAuth[1]);
+  app.use(express.session({
+    secret: 'houdinified ville',
+    store: new RedisStore({
+      host: app.set('redisHost'),
+      port: app.set('redisPort'),
+      db: app.set('redisDb'),
+      pass: app.set('redisPass')
+    })
+  }));
+
+  app.set('db-uri', 'mongodb://heroku:password@staff.mongohq.com:10007/app649905');
   app.use(express.errorHandler()); 
 });
 
@@ -123,7 +137,9 @@ var topics    = {}
   , topic_id  = 0;
 
 
-// had to add this for it to work on heroku
+// had to add this for it to work on heroku - which fails on Chrome
+// firefox handles it pretty well without this config
+// 
 // io.configure(function () {
 //   io.set('transports', ['xhr-polling', 'flashsocket', 'jsonp-polling']);
 // });
@@ -209,5 +225,5 @@ everyauth.helpExpress(app);
 
 var port = process.env.PORT || 3000;
 app.listen(port, function() {
-	console.log("Express server listening on port %d", port);
+  console.log("Express server listening on port %d", port);
 });
