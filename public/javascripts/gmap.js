@@ -71,15 +71,10 @@ App.Gmap.prototype = {
             // attach coordinates to friend object
             friend.position = location.position;
 
-            // if (self.getFriendsMarkerByGroupLoc(location_cluster)) {
-            //   self.FBFriendsMarkers[location_cluster].friends.push(friend); 
-            // } else {
-            //   self.delayedDrop(friend, 'marker content', location_cluster, cached_timer++);
-            // }
             if (self.getFriendsMarkerByGroupLoc(location_cluster)) {
               self.FBFriendsMarkers[location_cluster].friends.push(friend); 
             } else {
-              self.delayedDrop(friend, 'marker content', location_cluster, cached_timer++);
+              self.dropMarker(friend, 'marker content', self.icon.user, cluster);
             }
 
           } else {
@@ -127,41 +122,20 @@ App.Gmap.prototype = {
               fbMarkers[location_cluster].friends.push(friend); 
             } else {
 
-              fbMarkers[location_cluster] = {
-                friends: [friend],
-                position: friend.position
-              };
+              fbMarkers[location_cluster] = { friends: [friend], position: friend.position };
 
               self.addMarker(location.position, self.icon.user, function (marker) {
                 fbMarkers[location_cluster].marker = marker;
-
                 console.log('Test:: marker.position for <' + location_cluster 
                             + '> should be the same as friend.position',
                             fbMarkers[location_cluster].position.lat === marker.getPosition().lat());
 
-                marker.setTitle(fbMarkers[location_cluster].friends.length);
-
-
+                // marker.setTitle(fbMarkers[location_cluster].friends.length);
               });
-
             }
 
-
-            // if (self.getFriendsMarkerByGroupLoc(location_cluster)) {
-            //   self.FBFriendsMarkers[location_cluster].friends.push(friend); 
-            // } else {
-            //   // self.dropMarker(friend, 'marker content', self.icon.user, location_cluster);
-
-            //   self.addMarker(location.position, self.icon.user, function (marker) {
-            //     // marker  => criso 
-            //     myMarkers.push(
-            //       marker: marker,
-            //       friends: []
-            //       
-            //     );
-            //   });
-
-            // }
+          } else {
+            // instead of `self.getGeo()` it'll be from locs   
           }
         });
       }

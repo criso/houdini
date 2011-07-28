@@ -123,15 +123,20 @@ app.get('/', function(req, res){
   res.render('index', { title: 'Houdini' });
 });
 
-app.get('/location/:name', locationApi.show);
+app.get('/bb', function (req, res) {
+  res.render('bb', {title: 'backbone'});
+})
 
+
+app.get('/location/:name', locationApi.show);
 app.post('/friends', friendsApi.create);
+
+
 
 
 
 // Socket
 // =======
-// var chatApi = require('./lib/chat.js')
 
 var users           = {}
   , userPool        = {}

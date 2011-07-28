@@ -64,7 +64,9 @@ $.subscribe('/FB/user/loaded', function (user) {
 $(window).load(function () {
   // initialize google maps
   // ======================
-  App.world = new App.Gmap('map_canvas');	
+  if (!$('#backbone')[0]) {
+    App.world = new App.Gmap('map_canvas');	
+  }
 });
 
 // dom ready

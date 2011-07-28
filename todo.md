@@ -143,4 +143,12 @@ TODO --- in order of priority
 
 
 
+=========================================
+test out collections (backbone js)
 
+
+FB app data
+=======================
+http://stormy-autumn-563.herokuapp.com/
+
+http://localhost:3000
