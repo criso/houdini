@@ -84,7 +84,10 @@ app.configure('test', function() {
 });
 
 app.configure('production', function(){
-  app.set('db-uri', 'mongodb://<heroku>:<abcd1234!>@staff.mongohq.com:10007/app649905');
+  // app.set('db-uri', 'mongodb://<heroku>:<abcd1234!>@staff.mongohq.com:10007/app649905');
+  app.set('db-uri', process.env['MONGOHQ_URL']);
+// "mongoose.connect(process.env['MONGOHQ_URL'])" 
+
 
   app.use(express.errorHandler()); 
 });
