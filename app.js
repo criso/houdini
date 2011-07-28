@@ -122,6 +122,11 @@ var users           = {}
 var topics    = {}
   , topic_id  = 0;
 
+
+io.configure(function () {
+  io.set('transports', ['xhr-polling', 'flashsocket' 'json-polling']);
+});
+
 io.sockets.on('connection', function (socket) {
 
   // once a user is connected
