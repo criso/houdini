@@ -84,7 +84,8 @@ app.configure('test', function() {
 });
 
 app.configure('production', function(){
-  app.set('db-uri', 'mongodb://localhost/houdini');
+  app.set('db-uri', 'mongodb://<heroku>:<abcd1234!>@staff.mongohq.com:10007/app649905');
+
   app.use(express.errorHandler()); 
 });
 
