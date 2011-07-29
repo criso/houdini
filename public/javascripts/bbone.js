@@ -31,7 +31,6 @@ App.FriendRowView = Backbone.View.extend({
   },
 
   open: function (e) {
-    console.log('clicked:', this.model.get('name'));
 
     // we set the model to active 
     // to trigure an 'event' on the collection
@@ -39,11 +38,16 @@ App.FriendRowView = Backbone.View.extend({
     // this.model.set({active: 'active son'});
     // manually triggering change event
     this.model.change();
+
+    this.fadeIn();
+    this.highlight();
   },
 
   // HACKY TODO _FIXME
   fadeIn: function () {
-    $(this.el).fadeIn('slow');
+    $(this.el).animate({
+      opacity: 1 
+    }, 500);
   },
 
 
@@ -73,7 +77,10 @@ App.FriendsView = Backbone.View.extend({
 
   hideAll: function () {
     // this.$('#list .friend-row').addClass('hide-friends');
-    this.$('#list li').hide();
+    // this.$('#list li').hide();
+    this.$('#list li').animate({
+      opacity: 0.4 
+    });
   },
 
   clearHighlight: function () {
@@ -88,7 +95,7 @@ App.FriendsView = Backbone.View.extend({
 App.FBFriendModel = Backbone.Model.extend({
   initialize: function () {
     this.bind('change', function (model, active) {
-      console.log('model: ', model.get('name') + ' active: ', active);
+      // console.log('model: ', model.get('name') + ' active: ', active);
     });
   }
 
@@ -114,14 +121,17 @@ App.FBCollection = Backbone.Collection.extend({
 
     // user clicked on a picture 
     this.bind('change', function (model) {
-      console.log('Collection: ', model.get('name') + ' for location: ', this.location + 
-      ' marker position.lat(): ', this.marker.getPosition().lat());
+      // console.log('Collection: ', model.get('name') + ' for location: ', this.location + 
+      // ' marker position.lat(): ', this.marker.getPosition().lat());
 
+      // pan to location marker 
       App.world.map.panTo(this.marker.getPosition());
 
+      // bounce marker
       $.publish('bounce:marker', [this.marker]);
-    });
 
+      this.showInfoWindow();
+    });
   },
 
   showInfoWindow: function () {
@@ -133,7 +143,7 @@ App.FBCollection = Backbone.Collection.extend({
     this.each(function(user) {
       pictures += self.friendPictureTemplate(user.toJSON());
       // user.trigger('ui:highlight');
-      user.trigger('ui:fadeIn');
+      // user.trigger('ui:fadeIn');
     });
   
     var tmpl_obj = {
@@ -186,6 +196,8 @@ App.FareRowView = Backbone.View.extend({
 App.FaresView = Backbone.View.extend({
   el: $('#fares-section'),
 
+  className: "shadow",
+
   initialize: function (fares) {
     this.addCollection(fares);
   },
@@ -201,4 +213,4 @@ App.FaresView = Backbone.View.extend({
   }
 });
 
-
+App.FaresCollection = Backbone.Collection;

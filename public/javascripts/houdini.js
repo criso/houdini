@@ -3,6 +3,9 @@ var App = window.App || {};
 (function () {
 
 $.subscribe('/FB/Friends/loaded', function() {
+
+  $('#facebook_login').hide();
+
   // make sure we have a map before adding it 
   (function retry() {
     setTimeout(function() {
@@ -38,8 +41,8 @@ $.subscribe('/FB/user/loaded', function (user) {
           // add the user's location to the user object
           // and drop a marker there
           user.position = {
-            Ka: location.lat(),
-            La: location.lng()
+            lat: location.lat(),
+            lng: location.lng()
           };
 
           world.dropMarker(user, markerContent, world.icon.user, 'user');

@@ -31,8 +31,7 @@ socket.on('users online', function(users) {
       return; 
     }
 
-    console.log('dropping marker for <online> user: ' + 
-                user.name + ' @ ',user.position);
+    console.log('dropping marker for <online> user: ', user);
 
     App.note.notify("create", {
         picture: '<img src="' + user.picture + '" />'
@@ -42,31 +41,6 @@ socket.on('users online', function(users) {
 
     world.dropMarker(user, user.name, world.icon.online, 'online');
   });
-});
-
-
-/**
- *
- */
-socket.on('marker added', function (markerData) {
-  console.log('------ marker added: ', markerData);
-
-  // var world = App.world
-  //   , content =  '<div class="box">' +
-  //                   markerData.user.name + ' is adding something...' +
-  //               '</div>';
-
-  // world.addMarker(markerData.position, world.icon.likeToGo, function (marker) {
-  //   world.friendsPlacesMarkers.push(marker);
-
-  //   world.infoWindow.setContent(content);
-  //   world.infoWindow.open(world.map, marker);
-
-  //   // marker on click
-  //   google.maps.event.addListener(marker, 'click', function() {
-  //       world.infoWindow.open(world.map, marker);
-  //   });
-  // });
 });
 
 
@@ -89,11 +63,14 @@ socket.on('topic created', function (topicData) {
       , info_window = new google.maps.InfoWindow()
       , topic_title = topicData.title;
 
-    info_window.setContent($content[0]);
+    info_window.setContent(world.pinTemplate(topicData));
 
     // marker on click
+    // open chat on the right
     google.maps.event.addListener(marker, 'click', function() {
       info_window.open(world.map, marker);
+      $('#friends-chat').append($content);
+      world.focusChat(topic_id);
     });
 
     // animate marker for 5 seconds
@@ -102,7 +79,7 @@ socket.on('topic created', function (topicData) {
     // display notification
     App.note.notify("create", {
         picture: '<img src="' + topicData.user.picture + '" />'
-      , title: topicData.user.name + ' has started a conversation'
+      , title: topicData.user.name + ' has started a trip log'
       , text:  topic_title
     });
 
@@ -110,20 +87,23 @@ socket.on('topic created', function (topicData) {
         infoWindow: info_window
       , marker: marker
     };
+
   });
 });
 
 
-// socket.on('user message', message);
+/**
+ *
+ */
 socket.on('user message', function (chat_id, user, msg) {
   // should be using same function as sendMessage somehow
 
-  console.log($('.chat-box'));
+  console.log('socket => user message: ', chat_id, user, msg);
 
-  var world = App.world
-    , $chat_box = $('#' + chat_id)
+  var world       = App.world
+    , $chat_box   = $('#' + chat_id)
     , info_window = world.infoWindows[chat_id].infoWindow
-    , marker = world.infoWindows[chat_id].marker;
+    , marker      = world.infoWindows[chat_id].marker;
 
   // add message to chat box
   var $content = $('<li class="message">' +
@@ -131,43 +111,24 @@ socket.on('user message', function (chat_id, user, msg) {
       '<div class="you-say">' + msg  + '</div>' +
     '</li>');
 
-  // info_window is closed
-  if (!info_window.getMap()) {
-    // $chat_box will only exist in memory
-    // so we have to 
-    // - get the content
-    // - change it and set content 
-    var $old         = $(info_window.getContent())
-      , $new_content = $old.find('.messages').append($content).end();
-    
-    // since it's the div is new 
-    // we've lost the event bindings at this point
-    // there must be a better way to do this - TODO
-    $new_content.find('form')
-    .submit(function(ev){
-      ev.preventDefault();
-      world.sendMessage($new_content, marker);
-    })
-    .end();
 
-    info_window.setContent($new_content[0]);
+  $chat_box.find('.messages').append($content);
+  world.focusChat(chat_id);
+  world.bounceMarker(marker, 5000);
 
-    // animate marker for 5 seconds
-    world.bounceMarker(marker, 5000);
+  // display notification
+  App.note.notify("create", {
+      picture: '<img src="' + user.picture + '" />'
+    , title: user.name + ' says:'
+    , text:  msg
+  });
 
-    // display notification
-    App.note.notify("create", {
-        picture: '<img src="' + user.picture + '" />'
-      , title: user.name + ' says:'
-      , text:  msg
-    });
-
-  } else {
-    $chat_box.find('.messages').append($content);
-  }
 });
 
 
+/**
+ *
+ */
 socket.on('user disconnected', function (user) {
   console.log('user disconnected - ', user);
 });

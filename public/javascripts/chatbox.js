@@ -29,7 +29,7 @@ App.ChatBox.prototype = {
         '<img  alt="Avatar for <%=user.name%>" src="<%=user.picture%>" class="you-say">' +
         '<form>' +
         '<textarea name="message" id="user-message" autofocus></textarea>' +
-        '<button class="minimal button">Send</button' +
+        '<button class="minimal-alternate button">Send</button' +
         '</form>' +
       '</div>' +
     '</div>'

@@ -1,17 +1,17 @@
 div#map_canvas
 
 div#info_hub
+  h2.center.shadow Who do you want to visit?
   div#friends-section
     div#tabs
       ul
         li
-          a(href="#friends-list") friends
+          a(href="#friends-list") Friends
         li
-          a(href="#friends-chat") chat
+          a(href="#friends-chat") Trip Log
       div#friends-list
         ul#list
       div#friends-chat
-        p chat and stuff
   div#fares-section
     table
       thead
@@ -26,17 +26,21 @@ script#friend-row-template(type='text/template')
   
 
 script#info-window-template(type='text/template')
-  h2.info-header You have {{friend_count}} here!
+  h2.info-header.center.shadow You have {{friend_count}} here!
+  button.minimal.button.minimal-mail.right Tell them you want to visit!
   ul
     {{pictures}}
   h2.low-fares.right Get low fares alerts to this location
   div.clear-both
-  button.minimal.button.minimal-fares.right like
-
-
+  button.minimal.button.minimal-fares.right Like
 
 script#fares-template(type='text/template')
   td.price {{Price}}
   td {{To}} \- {{From}}
   td 
     a(href="{{Url}}") see fare
+
+script#user-pinned-template(type='text/template')
+  div.center
+    h2.info-header.shadow {{user.name}}'s log!
+    img.picture(src="{{user.picture}}", title="{{user.name}}")

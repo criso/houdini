@@ -12,6 +12,11 @@ App.Gmap = function(el, options) {
 	self.attachEvents();
   
   },2000);
+
+
+  //FIXME - spaghetti 
+  this.pinTemplate =  _.template($('#user-pinned-template').html());
+
 };
 
 
@@ -21,7 +26,6 @@ App.Gmap.prototype = {
     zoom: 4,
     mapTypeControl: false,
 
-    // mapTypeId: google.maps.MapTypeId.ROADMAP,
     mapTypeId: google.maps.MapTypeId.TERRAIN,
     center: new google.maps.LatLng(37.0902400,-95.7128910)
   }, 
@@ -53,52 +57,6 @@ App.Gmap.prototype = {
 
   initialLocationName: '',
 
-  // This function is a great place to use 
-  // $.deferrend TODO
-  addFriendsToMapBAK: function (friends) {
-    var self  = this
-      , timer = 0
-      , cached_timer = 0
-      , location_cluster = {};
-
-    _.each(friends, function (friend) {
-      if (friend.location && friend.location.name) {
-
-        // try to find a cached location object
-        // if that doesn't work - load from google
-        self.findCachedLocationObj(friend.location.name, function(location) {
-          if (location) {
-            location_cluster = location.location_cluster;
-
-            // attach coordinates to friend object
-            friend.position = location.position;
-
-            if (self.getFriendsMarkerByGroupLoc(location_cluster)) {
-              self.FBFriendsMarkers[location_cluster].friends.push(friend); 
-            } else {
-              self.dropMarker(friend, 'marker content', self.icon.user, cluster);
-            }
-
-          } else {
-
-            self.getGeo(friend, timer++, function(err) {
-              if (!err) {
-                var cluster = friend.location_cluster;
-
-                if (self.getFriendsMarkerByGroupLoc(cluster)) {
-                  timer--;
-                  self.FBFriendsMarkers[cluster].friends.push(friend);
-                } else {
-                  self.dropMarker(friend, 'marker content', self.icon.user, cluster);
-                }
-              }
-            });
-          }
-        });
-      }
-    });
-  },
-
   myMarkers: [],
 
   collections: {},
@@ -111,11 +69,11 @@ App.Gmap.prototype = {
       , friend_count = 0;
 
     var friendsView = new App.FriendsView();
-    var infoWindowTemplate =  _.template($('#info-window-template').html());
 
     _.each(friends, function (friend) {
       if (friend.location && friend.location.name) {
 
+        // LOCS - Locations
         App.Fares.getAirportData(friend.location.name, function(location) {
           if (!location.error) {
 
@@ -150,12 +108,74 @@ App.Gmap.prototype = {
             }
           }
         });
+
+        // self.findCachedLocationObj(friend.location.name, function(location) {
+
+        //   if (location) {
+        //     var location_cluster  = location.location_cluster
+        //       , position          = location.position;
+
+        //     if (self.collections[location_cluster]) {
+        //       self.collections[location_cluster].add(friend);
+        //     } else {
+
+        //       var collection = new App.FBCollection();
+        //       self.collections[location_cluster] = collection;
+
+        //       collection.location = location_cluster;
+        //       collection.position = position;
+        //       collection.add(friend);
+
+        //       friendsView.addCollection(collection);
+
+        //       self.addMarker(position, self.icon.user, function (marker) {
+        //         collection.marker = marker;
+
+        //         // click on marker
+        //         google.maps.event.addListener(marker, 'click', function() {
+        //           collection.showInfoWindow();
+        //           collection.showFares();
+        //           self.focusChat('default');
+        //         });
+
+        //       });
+        //     }
+        //   }
+        // });
       }
     });
+
+    this.addDefaultChat();
+
+  },
+
+  /**
+   *
+   */
+  addDefaultChat: function () {
+    var  topic_data = {
+      title:    'Join in on this trip log!',
+      user:     _.extend({}, App.Facebook.FBUser)
+    };
+
+    topic_data.user.picture = '/images/bush.jpg';
+    var $content    = new App.ChatBox('default', topic_data).el
+
+    $('#friends-chat').append($content);
+  },
+
+  /**
+   *
+   */
+  focusChat: function (id) {
+    $('#friends-chat').find('.chat-box').hide();
+    $('#' + id).show();
+
+    $('#tabs').tabs( "select" , 1 );
   },
 
 
-  // currently not used 
+  // currently not used
   // ==================
   useCachedLocations: function (friend, friendsView) {
           // self.findCachedLocationObj(friend.location.name, function(location) {
@@ -306,7 +326,7 @@ App.Gmap.prototype = {
           '<div class="topic-box">' +
             '<form class="topic-form">' +
               '<p>What would you like to do here?</p>' +
-              '<input type="text" name=topic autofocus />' +
+              '<input type="text" name="topic" autofocus />' +
               '<input type="hidden" name="lat" value="'+ event.latLng.lat()  +'" />' +
               '<input type="hidden" name="lng" value="'+  event.latLng.lng() +'" />' +
             '</form>' +
@@ -320,6 +340,10 @@ App.Gmap.prototype = {
 
         topic_info_window.setContent($content[0]);
         topic_info_window.open(self.map, marker);
+
+
+        $content.find('input[name="topic"]').focus();
+
 
         // on closeclick of the topic_info
         // we'll remove the marker, since the user hasn't
@@ -559,6 +583,7 @@ App.Gmap.prototype = {
 
     $messages.append($content);
     socket.emit('user message', chat_id,  user, message);
+    console.log('emit => user message', chat_id, user, message);
 
     $msg.val('').focus();
   },
@@ -582,42 +607,25 @@ App.Gmap.prototype = {
     // each topic gets saved on the DB with an id
     // the chat-box now has id for the "room"
     socket.emit('new topic', topic_data, function(set, topic_id) {
+
       if (set) {
+        var $content      = new App.ChatBox(topic_id, topic_data).el
+          , info_window   = new google.maps.InfoWindow();
 
-        // set content on infowindow to be:
-        //    - topic name
-        // on click
-        //    - open chat tab
-        //    - chat elem should haven an id
-
-        var $content    = new App.ChatBox(topic_id, topic_data).el
-          , info_window = new google.maps.InfoWindow();
-
-          info_window.setContent('<h1>' + topic_data.title + '</h1>');
+        info_window.setContent(self.pinTemplate(topic_data));
 
         google.maps.event.addListener(marker, 'click', function() {
           info_window.open(self.map, marker);
-          $('#friends-chat').html($content);
-          $('#tabs').tabs( "select" , 1 );
+          $('#friends-chat').append($content);
+          self.focusChat(topic_id);
         });
 
-        //
-        //   , info_window = new google.maps.InfoWindow();
 
-        // // marker on click
-        // google.maps.event.addListener(marker, 'click', function() {
-        //   info_window.open(self.map, marker);
-        // });
-
-        // $content.data({marker: marker});
-
-        // self.infoWindows[topic_id] = {
-        //   infoWindow: info_window,
-        //   marker: marker
-        // };
-
-        // info_window.setContent($content[0]);
-        // info_window.open(self.map, marker);
+        // add to infowindows list 
+        self.infoWindows[topic_id] = {
+            infoWindow: info_window
+          , marker: marker
+        };
       }
     });
   },

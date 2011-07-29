@@ -44,8 +44,8 @@ App.Fares = {
         return _fn({error: 'err'});
       }
 
-      _fn(resp.results);
-
+      var results = _.select(resp.results, function(res) { return res.To == 'BOS'})
+      _fn(results);
     });
   }
 

@@ -196,9 +196,8 @@ io.sockets.on('connection', function (socket) {
     var topic_saved = true;
     topics[topic_id++] = topicData;
     topicData.topic_id = topic_id;
-    _fn(topic_saved, topic_id);
-
     socket.broadcast.emit('topic created', topicData);
+    _fn(topic_saved, topic_id);
   });
 
 

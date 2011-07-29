@@ -102,28 +102,9 @@ when users come online
 =================================
 TODO --- in order of priority
 
-- we can activate a bounce animation somewhere
-    google.maps.event.addListener(marker, 'click', toggleBounce);
-
-    function toggleBounce() {
-
-      if (marker.getAnimation() != null) {
-        marker.setAnimation(null);
-      } else {
-        marker.setAnimation(google.maps.Animation.BOUNCE);
-      }
 
   #click on the map
     - drop a pin
-      > - all users can see 
-      > - create a box 
-        > client now types on input what they would like to do here...
-          > - that text becomes the header/topic
-            - topic should be saved
-            - topic should be set (form goes away)
-            - textarea now exists
-            - chat input area below now exists
-        > - other users see "Jerry what's to do something here..."
 
         - other users can comment on the input box
         - inline images
@@ -147,8 +128,34 @@ TODO --- in order of priority
 test out collections (backbone js)
 
 
-FB app data
+FB app data - Heroku
 =======================
 http://stormy-autumn-563.herokuapp.com/
-
 http://localhost:3000
+
+
+
+
+
+Chat on the Right
+=================
+
+client user                                                         |       server user
+===========                                                         |       ============
+- user click on the map
+  - drop orange pin
+    - Ask (what would like to do here?)
+    - onEnter
+      - attach infoBubble (permanent infowindow)                    |   - bounce marker and attach infoBubble
+        with topic-title
+
+  - Orange pin OnClick
+    - show chat tab                                                     - show chat tab
+    - chat is focused
+
+  - Friend Pin OnClick
+    - show info window with friends
+    - chat is focused
+
+  - user connects
+    - show notification

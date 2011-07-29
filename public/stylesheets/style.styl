@@ -28,7 +28,7 @@ a
     text-decoration: underline
 
 ul
-  list-style: none;
+  list-style: none
 
 .hide
   display: none
@@ -36,8 +36,14 @@ ul
 .right
   float: right
 
+.center
+  text-align: center
+
 .clear-both
   clear: both
+
+.shadow 
+  text-shadow: 0 1px 1px #DDD;
 
 // notifications
 #notify-container
@@ -64,24 +70,23 @@ input[type='text']
     box-shadow: 0 1px 1px 0 rgba(blue, 0.6), 0 0 3px 1px rgba(blue, 0.3)
 
 h1
-  color: white;
-  font-size: 30px;
-  font-weight: bold;
-  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.68);
-  letter-spacing: -1px;
-  margin: 0;
+  color: white
+  font-size: 30px
+  font-weight: bold
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.68)
+  letter-spacing: -1px
+  margin: 0
 
 #facebook_login
-  display: none
-  position: absolute;
-  float: left;
-  width: 200px;
-  padding: 20px 0px 20px 20px;
-  top: 50%;
-  left: 50%;
-  z-index: 1001;
-  background: white;
-  border: 3px solid #DDD;
+  position: absolute
+  float: left
+  width: 200px
+  padding: 20px 0px 20px 20px
+  top: 50%
+  left: 50%
+  z-index: 1001
+  background: white
+  border: 3px solid #DDD
 
 // info hub
 #info_hub
@@ -96,7 +101,7 @@ h1
     font-size: 11px
     font-family: verdana
     td
-      padding: 6px 3px
+      padding: 6px 15px
     .price
       font-weight: bold
   #friends-section
@@ -113,6 +118,7 @@ h1
       padding: 0
       text-align: center
      .friend-row 
+      opacity: 0.6
       float: left
       padding: 2px 2px 0px 2px
       border: 1px solid #DDD
@@ -120,14 +126,15 @@ h1
       cursor: pointer
       margin: 4px 3px
      .friend-row.highlighted
-       border-color: red
-  #fares-section 
-    overflow: hidden;
-    height: 50%;
-    overflow: auto;
-    border-bottom: 1px solid #DDD;
-    width: auto;
-    margin-left: 20px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+        border: 1px solid #999;
+  #fares-section
+    overflow: auto
+    height: 25%
+    border-bottom: 1px solid #DDD
+    width: auto
+    margin-left: 20px
+    padding: 10px
 
 
 // topic form
@@ -168,10 +175,11 @@ h1
 
     
 .chat-header
+  margin-top: 20px
+  text-shadow: 0 1px 1px #DDD
   color #000
   font-size 14px
   font-weight bold
-  text-shadow 0 1px 0 white
   .topic-title
     float left
 
@@ -188,8 +196,8 @@ h1
   background: #FFF
 
 .chat-input textarea
-  width: 350px;
-  float: left;
+  width: 350px
+  float: left
   border: 1px solid lighter
   border-radius: 4px
   font-size: 16px
@@ -209,12 +217,20 @@ h1
 // ======================= chat on the right
 #friends-chat
   padding: 5px
+  background-color: #EAEAEC !important
+  background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#FAFAFA), to(#EAEAEC)) !important
+  box-shadow: inset 0 -1px 0 0 rgba(0, 0, 0, 0.08),inset 0 1px 0 0 white, 0 2px 5px 0 rgba(0, 0, 0, 0.25)
+  border: 1px solid #DDD
   .chat-box
     width: 270px
     height: 430px
   .messages
     width: 280px
     height: 65%
+    font-size: 14px
+    font-family: "Verdana", "Helvetica Neue", Arial, sans-serif !important
+    color: black
+    background: white
     .message
       width: 97%
   .chat-input 
@@ -222,10 +238,6 @@ h1
       width: 220px
     button
       font-size: 12px
-
-
-
-
 
 
 
@@ -248,10 +260,23 @@ h1
 
 .minimal-alternate
   minimal-button(#7fbf4d, text: darken(#7fbf4d, 75%), text-shadow: rgba(white, 0.75))
+  &:before
+    color rgba(0,0,0,0.5)
+    position relative
+    left -13px
+    top 2px
+    line-height 10px
+    content 'j'
+    font-family 'IconicStroke'
+    font-size 18px
+    font-weight normal
 
 .minimal-fares
   &:before
-    content '\\'
+    content 'h'
   
+.minimal-mail
+  &:before
+    content 'm'
 
 
