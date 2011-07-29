@@ -2,9 +2,41 @@ div#map_canvas
 
 div#info_hub
   div#friends-section
-    ul#list
+    div#tabs
+      ul
+        li
+          a(href="#friends-list") friends
+        li
+          a(href="#friends-chat") chat
+      div#friends-list
+        ul#list
+      div#friends-chat
+        p chat and stuff
   div#fares-section
-
+    table
+      thead
+        tr
+          th Price
+          th From - To
+          th Airline
+      tbody
 
 script#friend-row-template(type='text/template')
-  img.picture(src="{{picture}}")
+  img.picture(src="{{picture}}", title="{{name}}")
+  
+
+script#info-window-template(type='text/template')
+  h2.info-header You have {{friend_count}} here!
+  ul
+    {{pictures}}
+  h2.low-fares.right Get low fares alerts to this location
+  div.clear-both
+  button.minimal.button.minimal-fares.right like
+
+
+
+script#fares-template(type='text/template')
+  td.price {{Price}}
+  td {{To}} \- {{From}}
+  td 
+    a(href="{{Url}}") see fare

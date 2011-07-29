@@ -73,4 +73,5 @@ $(window).load(function () {
 $(function() {
   App.note = $('#notify-container').notify();
 
+  $('#tabs').tabs({ selected: 0 });
 });

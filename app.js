@@ -123,6 +123,7 @@ app.get('/', function(req, res){
   res.render('index', { title: 'Houdini' });
 });
 
+
 app.get('/bb', function (req, res) {
   res.render('bb', {title: 'backbone'});
 })
@@ -164,6 +165,7 @@ io.sockets.on('connection', function (socket) {
 
     userPool[facebook_id] = {
       name:       userData.name,
+      picture:    userData.picture,
       socketID:   socket.id,
       facebookID: facebook_id,
       position: {

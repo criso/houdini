@@ -9,11 +9,15 @@ html
     script(src='/javascripts/lib/pubsub.min.js')
     script(src='/socket.io/socket.io.js')
     script(src='/javascripts/gmap.js')
-    script(src='/javascripts/lib/jquery.ui.widget.js')
+    // script(src='/javascripts/lib/jquery.ui.widget.js')
+    script(src='/javascripts/jquery-ui/js/jquery-ui-1.8.14.custom.min.js')
+
     script(src='/javascripts/lib/jquery.notify.min.js')
     script(src='/javascripts/houdini.js')
+    script(src='/javascripts/fares.js')
     script(src='/javascripts/chatbox.js')
     script(src='/javascripts/client.js')
+    link(rel='stylesheet', href="/stylesheets/jquery-ui/css/ui-lightness/jquery-ui-1.8.14.custom.css")
     link(rel='stylesheet', href='/stylesheets/style.css')
     link(rel='stylesheet', href='/stylesheets/jquery.notify.css')
     link(rel='stylesheet', href="http://code.google.com/apis/maps/documentation/javascript/examples/default.css")
@@ -36,8 +40,6 @@ html
       div.picture \#{picture}
       h1 \#{title}
       p \#{text}
-
-
 
 
 

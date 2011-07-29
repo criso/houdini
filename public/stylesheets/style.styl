@@ -33,6 +33,11 @@ ul
 .hide
   display: none
 
+.right
+  float: right
+
+.clear-both
+  clear: both
 
 // notifications
 #notify-container
@@ -67,6 +72,7 @@ h1
   margin: 0;
 
 #facebook_login
+  display: none
   position: absolute;
   float: left;
   width: 200px;
@@ -79,7 +85,7 @@ h1
 
 // info hub
 #info_hub
-  background: #DDD
+  background: #FFF
   width: 300px
   height: 100%
   position: absolute
@@ -93,10 +99,35 @@ h1
       padding: 6px 3px
     .price
       font-weight: bold
-
-
-
-
+  #friends-section
+    height: 65%
+    overflow: auto
+    border-bottom: 1px solid #DDD
+    width: auto
+    margin-left: 0px
+    #list
+      width: 250px
+      margin: 0
+      background: #FFF
+      float: left
+      padding: 0
+      text-align: center
+     .friend-row 
+      float: left
+      padding: 2px 2px 0px 2px
+      border: 1px solid #DDD
+      background: white
+      cursor: pointer
+      margin: 4px 3px
+     .friend-row.highlighted
+       border-color: red
+  #fares-section 
+    overflow: hidden;
+    height: 50%;
+    overflow: auto;
+    border-bottom: 1px solid #DDD;
+    width: auto;
+    margin-left: 20px;
 
 
 // topic form
@@ -175,8 +206,32 @@ h1
     float: right
     margin-top: 5px
 
+// ======================= chat on the right
+#friends-chat
+  padding: 5px
+  .chat-box
+    width: 270px
+    height: 430px
+  .messages
+    width: 280px
+    height: 65%
+    .message
+      width: 97%
+  .chat-input 
+    textarea 
+      width: 220px
+    button
+      font-size: 12px
 
 
+
+
+
+
+
+.ui-widget-content 
+  background: none !important
+  border: none !important 
 
 .minimal
   minimal-button()
@@ -193,4 +248,10 @@ h1
 
 .minimal-alternate
   minimal-button(#7fbf4d, text: darken(#7fbf4d, 75%), text-shadow: rgba(white, 0.75))
+
+.minimal-fares
+  &:before
+    content '\\'
+  
+
 

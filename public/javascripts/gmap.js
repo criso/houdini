@@ -51,6 +51,8 @@ App.Gmap.prototype = {
   // user initial location
   initialLocation: {},
 
+  initialLocationName: '',
+
   // This function is a great place to use 
   // $.deferrend TODO
   addFriendsToMapBAK: function (friends) {
@@ -99,6 +101,8 @@ App.Gmap.prototype = {
 
   myMarkers: [],
 
+  collections: {},
+
   addFriendsToMap: function (friends) {
     var self  = this
       , timer = 0
@@ -106,40 +110,107 @@ App.Gmap.prototype = {
       , location_cluster = {}
       , friend_count = 0;
 
+    var friendsView = new App.FriendsView();
+    var infoWindowTemplate =  _.template($('#info-window-template').html());
+
     _.each(friends, function (friend) {
       if (friend.location && friend.location.name) {
 
-        // try to find a cached location object
-        // if that doesn't work - load from google
-        self.findCachedLocationObj(friend.location.name, function(location) {
-          if (location) {
-            location_cluster  = location.location_cluster;
-            friend.position   = location.position;
+        App.Fares.getAirportData(friend.location.name, function(location) {
+          if (!location.error) {
 
-            var fbMarkers = self.FBFriendsMarkers;
-
-            if (fbMarkers[location_cluster]) {
-              fbMarkers[location_cluster].friends.push(friend); 
+            var location_cluster  = location.location_cluster
+              , position          = location.position;
+            
+            if (self.collections[location_cluster]) {
+              self.collections[location_cluster].add(friend);
             } else {
 
-              fbMarkers[location_cluster] = { friends: [friend], position: friend.position };
+              var collection = new App.FBCollection();
+              self.collections[location_cluster] = collection;
 
-              self.addMarker(location.position, self.icon.user, function (marker) {
-                fbMarkers[location_cluster].marker = marker;
-                console.log('Test:: marker.position for <' + location_cluster 
-                            + '> should be the same as friend.position',
-                            fbMarkers[location_cluster].position.lat === marker.getPosition().lat());
+              collection.location = location_cluster;
+              collection.position = position;
+              collection.add(friend);
 
-                // marker.setTitle(fbMarkers[location_cluster].friends.length);
+              friendsView.addCollection(collection);
+
+              self.addMarker(position, self.icon.user, function (marker) {
+                collection.marker = marker;
+
+                // click on marker
+                google.maps.event.addListener(marker, 'click', function() {
+                  friendsView.hideAll();
+                  collection.showInfoWindow();
+                  collection.showFares();
+
+                });
+
               });
             }
-
-          } else {
-            // instead of `self.getGeo()` it'll be from locs   
           }
         });
       }
     });
+  },
+
+
+  // currently not used 
+  // ==================
+  useCachedLocations: function (friend, friendsView) {
+          // self.findCachedLocationObj(friend.location.name, function(location) {
+
+          //   if (location) {
+          //     location_cluster  = location.location_cluster;
+          //     friend.position   = location.position;
+
+          //     if (self.collections[location_cluster]) {
+          //       // bbone
+          //       self.collections[location_cluster].add(friend);
+          //       // bbone
+          //     } else {
+
+          //       
+          //       // bbone
+          //       var collection = new App.FBCollection();
+          //       self.collections[location_cluster] = collection;
+
+          //       collection.location = location_cluster;
+          //       collection.position = friend.position;
+          //       collection.add(friend);
+
+          //       friendsView.addCollection(collection);
+          //       // bbone
+
+
+          //       self.addMarker(location.position, self.icon.user, function (marker) {
+          //         collection.marker = marker;
+          //         // clear highlights from marked friends
+          //         friendsView.clearHighlight();
+
+          //         google.maps.event.addListener(marker, 'click', function() {
+
+          //           var users = '';
+          //           collection.each(function(user) {
+          //             user.trigger('ui:highlight');
+          //             users += user.get('name');
+          //           });
+
+          //           var info_window = new google.maps.InfoWindow();
+
+          //           info_window.setContent('<div>' + users + '</div>');
+          //           info_window.open(self.map, marker);
+          //           
+          //         });
+
+          //         // console.log('Test:: marker.position for <' + location_cluster 
+          //         //             + '> should be the same as friend.position',
+          //         //             self.collections[location_cluster].position.lat === marker.getPosition().lat());
+          //       });
+          //     }
+
+          //   }
+          // });
   },
 
   // drop markers with a delay in between them
@@ -262,10 +333,15 @@ App.Gmap.prototype = {
       });
     });
 
+    // chat box on submit
     $('.chat-box form').live('submit', function(ev) {
       ev.preventDefault();
       var $form = $(this).parents('.chat-box').first();
       self.sendMessage($form, $form.data('marker'));
+    });
+
+    $.subscribe('bounce:marker', function(marker) {
+      self.bounceMarker(marker, 4000); 
     });
   },
 
@@ -375,6 +451,8 @@ App.Gmap.prototype = {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(function(position) {
         self.initialLocation = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
+
+
         _fn(self.initialLocation, 'This is Home');
 
       }, function() {
@@ -505,23 +583,41 @@ App.Gmap.prototype = {
     // the chat-box now has id for the "room"
     socket.emit('new topic', topic_data, function(set, topic_id) {
       if (set) {
+
+        // set content on infowindow to be:
+        //    - topic name
+        // on click
+        //    - open chat tab
+        //    - chat elem should haven an id
+
         var $content    = new App.ChatBox(topic_id, topic_data).el
           , info_window = new google.maps.InfoWindow();
 
-        // marker on click
+          info_window.setContent('<h1>' + topic_data.title + '</h1>');
+
         google.maps.event.addListener(marker, 'click', function() {
           info_window.open(self.map, marker);
+          $('#friends-chat').html($content);
+          $('#tabs').tabs( "select" , 1 );
         });
 
-        $content.data({marker: marker});
+        //
+        //   , info_window = new google.maps.InfoWindow();
 
-        self.infoWindows[topic_id] = {
-          infoWindow: info_window,
-          marker: marker
-        };
+        // // marker on click
+        // google.maps.event.addListener(marker, 'click', function() {
+        //   info_window.open(self.map, marker);
+        // });
 
-        info_window.setContent($content[0]);
-        info_window.open(self.map, marker);
+        // $content.data({marker: marker});
+
+        // self.infoWindows[topic_id] = {
+        //   infoWindow: info_window,
+        //   marker: marker
+        // };
+
+        // info_window.setContent($content[0]);
+        // info_window.open(self.map, marker);
       }
     });
   },

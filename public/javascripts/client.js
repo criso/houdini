@@ -34,6 +34,12 @@ socket.on('users online', function(users) {
     console.log('dropping marker for <online> user: ' + 
                 user.name + ' @ ',user.position);
 
+    App.note.notify("create", {
+        picture: '<img src="' + user.picture + '" />'
+      , title: user.name + ' has connected'
+      , text:  'Welcome ' + user.name
+    });
+
     world.dropMarker(user, user.name, world.icon.online, 'online');
   });
 });
