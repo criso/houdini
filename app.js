@@ -6,7 +6,7 @@ var express       = require('express')
   , io            = require('socket.io').listen(app)
   , everyauth     = require('everyauth')
   , mongoose      = require('mongoose')
-  , url           = require('url')	
+  , url           = require('url')
   , RedisStore    = require('connect-redis')(express)
   , stylus        = require('stylus')
   , nib           = require('nib')
@@ -18,14 +18,13 @@ var express       = require('express')
 var oauthconf     = require('./conf')
   , userUtils     = require('./lib/user_helpers.js');
 
-
 // User authentication
 // ===================
 everyauth
   .facebook
     .appId(oauthconf.fb.appId)
     .appSecret(oauthconf.fb.appSecret)
-    .findOrCreateUser( function (session, accessToken, accessTokenExtra, 
+    .findOrCreateUser( function (session, accessToken, accessTokenExtra,
                                                         fbUserMetadata) {
       console.log(fbUserMetadata);
       var promise = new Promise();
@@ -67,13 +66,13 @@ app.configure(function(){
         pass: app.set('redisPass')
       })
     }));
-    
+
   } else {
     app.use(express.session({ secret: 'houdinified ville'}));
   }
 
 
-  app.use(stylus.middleware({ 
+  app.use(stylus.middleware({
     src: __dirname + '/public',
     dest: __dirname + '/public',
     compile: function(str, path) {
@@ -105,7 +104,7 @@ app.configure('test', function() {
 // ==========
 app.configure('production', function(){
   app.set('db-uri', 'mongodb://heroku:password@staff.mongohq.com:10007/app649905');
-  app.use(express.errorHandler()); 
+  app.use(express.errorHandler());
 });
 
 
@@ -150,7 +149,7 @@ var topics    = {}
 
 // had to add this for it to work on heroku - which fails on Chrome
 // firefox handles it pretty well without this config
-// 
+//
 // io.configure(function () {
 //   io.set('transports', ['xhr-polling', 'flashsocket', 'jsonp-polling']);
 // });
@@ -207,7 +206,7 @@ io.sockets.on('connection', function (socket) {
 
 
   // if any of the friends.ids are in the userPool
-  // array - send call back leting them know that 
+  // array - send call back leting them know that
   // they're friend is connected
   socket.on('friends', function (friends) {
     socket.friends = friends; // allowed friends
@@ -230,7 +229,7 @@ io.sockets.on('connection', function (socket) {
 
 });
 
- 
+
 
 everyauth.helpExpress(app);
 
